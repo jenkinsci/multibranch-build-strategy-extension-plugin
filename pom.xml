@@ -38,12 +38,14 @@
         <developer>
             <id>igalg</id>
             <name>Igal Gluh</name>
+            <email>igal.gluh@gmail.com</email>
         </developer>
     </developers>
     
     <scm>
         <connection>scm:git:ssh://git@github.com/jenkinsci/multibranch-build-strategy-extension.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/multibranch-build-strategy-extension.git</developerConnection>
+        <url>https://github.com/jenkinsci/multibranch-build-strategy-extension.git</url>
     </scm>
 
     <repositories>
