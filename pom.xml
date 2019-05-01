@@ -18,7 +18,7 @@
     <description>This plugin provides additional configuration for multi branch build strategies.</description>
     
     
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <url>https://wiki.jenkins.io/display/JENKINS/Multibranch+Build+Strategy+Extension+Plugin</url>
 
     <properties>
         <jenkins.version>2.89.4</jenkins.version>
