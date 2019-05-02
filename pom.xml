@@ -11,7 +11,7 @@
 
     <groupId>igalg.jenkins.plugins</groupId>
     <artifactId>multibranch-build-strategy-extension</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Pipeline: Multibranch build strategy extension</name>
     
@@ -46,7 +46,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/multibranch-build-strategy-extension.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/multibranch-build-strategy-extension.git</developerConnection>
         <url>https://github.com/jenkinsci/multibranch-build-strategy-extension.git</url>
-    <tag>multibranch-build-strategy-extension-1.0.8</tag>
+    <tag>HEAD</tag>
   </scm>
 
     <repositories>
