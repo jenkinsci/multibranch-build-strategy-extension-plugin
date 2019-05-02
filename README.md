@@ -14,7 +14,7 @@ Let's say you don't want your ci to run on README or .gitignore or any .html fil
 On multibranch job go to Build Strategy section , click add button and select
 Cancel build excluded regions strategy 
 
-![Multibranch build strategy extension](/images/exclude-regions.png)
+![Multibranch build strategy extension](/images/exclude.png)
 
 fill the textarea with ant style exclusions:
 README.md
