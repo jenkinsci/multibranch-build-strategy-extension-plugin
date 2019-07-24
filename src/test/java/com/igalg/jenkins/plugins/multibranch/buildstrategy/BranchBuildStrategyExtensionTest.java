@@ -45,14 +45,16 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.plugins.git.GitSCM;
 import hudson.scm.SCM;
 import jenkins.plugins.git.AbstractGitSCMSource.SCMRevisionImpl;
+import jenkins.plugins.git.GitSCMFile;
 import jenkins.plugins.git.GitSCMFileSystem;
 import jenkins.plugins.git.GitSCMSource;
+import jenkins.scm.api.SCMFile;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMSourceOwner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({IncludeRegionBranchBuildStrategy.class, GitSCMSource.class})
-public class RegionBranchBuildStrategyTest{
+public class BranchBuildStrategyExtensionTest{
 	
 	
 	private SCMHead head;
@@ -74,8 +76,6 @@ public class RegionBranchBuildStrategyTest{
         this.prevRevision = new SCMRevisionImpl(head, randomHash());
         this.scm = new GitSCM("http://test.com");
     }
-    
-    
     
     
 
@@ -137,7 +137,23 @@ public class RegionBranchBuildStrategyTest{
     }
     
     
+    @Test
+    public void testFileExclludeIsReturnsFalseIfAllAffectedFileInTheRange() throws Exception {
+        String commits = generateCommitLogString(".gitignore","README.md") + generateCommitLogString(".gitignore","README2.md");
+        setupGitSourceMocksWithCommits(commits);
+        ExcludeByIgnoreFileBranchBuildStrategy excludeRegionBranchBuildStrategy = new ExcludeByIgnoreFileBranchBuildStrategy(".jenkinsignore");
+        assertFalse(excludeRegionBranchBuildStrategy.isAutomaticBuild(source, head, currRevision, prevRevision));
+    }
     
+    
+    @Test
+    public void testFileExclludeIsReturnsTrueIfAllAffectedFileInTheRange() throws Exception {
+        String commits = generateCommitLogString(".gitignore","README.md") + generateCommitLogString(".gitignore","README.md2");
+        setupGitSourceMocksWithCommits(commits);
+        ExcludeByIgnoreFileBranchBuildStrategy excludeRegionBranchBuildStrategy = new ExcludeByIgnoreFileBranchBuildStrategy(".jenkinsignore");
+        assertTrue(excludeRegionBranchBuildStrategy.isAutomaticBuild(source, head, currRevision, prevRevision));
+    }
+     
     
     
     
@@ -153,6 +169,12 @@ public class RegionBranchBuildStrategyTest{
         Mockito.when(fileSystemMock.changesSince(prevRevision, ByteArrayOutputStreamMock)).thenReturn(true);
         PowerMockito.whenNew(ByteArrayOutputStream.class).withNoArguments().thenReturn(ByteArrayOutputStreamMock);
         PowerMockito.whenNew(GitSCMFileSystem.BuilderImpl.class).withNoArguments().thenReturn(builderMock);
+        SCMFile scmFile = Mockito.mock(SCMFile.class);
+        SCMFile scmRoot = Mockito.mock(SCMFile.class);
+        Mockito.when(fileSystemMock.getRoot()).thenReturn(scmRoot);
+        Mockito.when(scmRoot.child(".jenkinsignore")).thenReturn(scmFile);
+        Mockito.when(scmFile.contentAsString()).thenReturn("*.md\n*.gitignore");
+        
     }
       
     
@@ -173,7 +195,17 @@ public class RegionBranchBuildStrategyTest{
     	return String.join("\n", lines);
     }
     
-    
+    private String generateCommitLogStringWithComment(String comment,String...affectedFiles){
+    	
+    	List<String> lines = new ArrayList<String>();
+    	lines.add("commit " + randomHash());
+    	lines.add(getDefaultAuthorLine());
+    	lines.add("    "+comment);
+    	for (String affectedFile : affectedFiles)
+    		lines.add(getAffectedFileLine(affectedFile));
+    	lines.add("\n");
+    	return String.join("\n", lines);
+    }
     
     private String getDefaultAuthorLine() {
 		return "author Test Test<test@test.com>";

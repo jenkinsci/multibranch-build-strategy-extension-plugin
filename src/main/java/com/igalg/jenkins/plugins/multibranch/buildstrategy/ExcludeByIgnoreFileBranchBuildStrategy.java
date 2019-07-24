@@ -37,47 +37,41 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import hudson.Extension;
 import hudson.scm.SCM;
 import jenkins.branch.BranchBuildStrategyDescriptor;
+import jenkins.scm.api.SCMFile;
 import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceOwner;
 
-public class IncludeRegionBranchBuildStrategy extends BranchBuildStrategyExtension {
+public class ExcludeByIgnoreFileBranchBuildStrategy extends BranchBuildStrategyExtension {
     
-	private static final Logger logger = Logger.getLogger(IncludeRegionBranchBuildStrategy.class.getName());
-    private final String includedRegions;
+	private static final Logger logger = Logger.getLogger(ExcludeByIgnoreFileBranchBuildStrategy.class.getName());
+    private final String ignorefilePath;
     
-    public String getIncludedRegions() {
-		return includedRegions;
+    public String getIgnorefilePath() {
+		return ignorefilePath;
 	}
 
 
     @DataBoundConstructor
-    public IncludeRegionBranchBuildStrategy(String includedRegions) {
-        this.includedRegions = includedRegions;
+    public ExcludeByIgnoreFileBranchBuildStrategy(String ignorefilePath) {
+    	if(ignorefilePath==null || ignorefilePath.trim().length()==0)
+    		ignorefilePath = ".jenkinsignore";
+        this.ignorefilePath = ignorefilePath;
     }
 
     
 
    
     /**
-     * Determine if build is required by checking if any of the commit affected files is in the include regions.
+     * Determine if build is required by checking if all of the commit affected files are in the exclude regions.
      *
-     * @return true if  there is at least one affected file in the include regions 
+     * @return false if  all affected file in the exclude regions 
      */
     @Override
     public boolean isAutomaticBuild(SCMSource source, SCMHead head, SCMRevision currRevision, SCMRevision prevRevision) {
         try {
-        	
-        	 List<String> includedRegionsList = Arrays.stream(
-             		includedRegions.split("\n")).map(e -> e.trim()).collect(Collectors.toList());
-
-             logger.info(String.format("Included regions: %s", includedRegionsList.toString()));
-             
-             // No regions included cancel the build
-             if(includedRegionsList.isEmpty())
-             	return false;
         	
         	
         	// build SCM object
@@ -98,21 +92,49 @@ public class IncludeRegionBranchBuildStrategy extends BranchBuildStrategyExtensi
                 logger.severe("Error build SCM file system");
                 return true;
             }
-            
-            List<String> pathesList = new ArrayList<String>(collectAllAffectedFiles(getGitChangeSetListFromPrevious(fileSystem, head, prevRevision)));
-            // If there is match for at least one file run the build
-            for (String filePath : pathesList){
-    			for(String includedRegion:includedRegionsList) {    				
-    				if(SelectorUtils.matchPath(includedRegion, filePath)) {
-    					logger.info("Matched included region:" + includedRegion + " with file path:" + filePath);
-    					return true;
-    				}else {
-    					logger.fine("Not matched included region:" + includedRegion + " with file path:" + filePath);
-    				}
-    			}
+           
+            SCMFile file = fileSystem.getRoot().child(ignorefilePath);
+            if(file == null || !file.exists() || !file.isFile()) {
+            	logger.severe("File:" + ignorefilePath + " not found");
+            	
             }
             
+            		
+            String ignoreString = fileSystem.getRoot().child(ignorefilePath).contentAsString();
+            logger.info(String.format("Excluded file content: %s", ignoreString));
             
+            List<String> excludedRegionsList = Arrays.stream(
+            		ignoreString.split("\n")).map(e -> e.trim()).collect(Collectors.toList());
+
+            logger.info(String.format("Excluded regions: %s", excludedRegionsList.toString()));
+            
+            // No regions excluded run the build
+            if(excludedRegionsList.isEmpty())
+            	return true;
+            
+            
+            
+            // Collect all changes from previous build 
+            List<String> pathesList = new ArrayList<String>(collectAllAffectedFiles(getGitChangeSetListFromPrevious(fileSystem, head, prevRevision)));
+            // If there is no match for at least one file run the build
+            for (String filePath : pathesList) {
+    			boolean inExclusion = false;
+        		for(String excludedRegion:excludedRegionsList) {    				
+    				if(SelectorUtils.matchPath(excludedRegion, filePath)) {
+    					logger.fine("Matched excluded region:" + excludedRegion + " with file path:" + filePath);
+    					inExclusion = true;
+    					break;
+    				}else {
+    					logger.fine("Not matched excluded region:" + excludedRegion + " with file path:" + filePath);
+    				}
+    			}
+        		if(!inExclusion){
+        			logger.info("File:" + filePath + " Not matched any excluded region " + excludedRegionsList + " build shoud be triggered");
+        			return true;
+        		}
+            }
+            
+            logger.info("All affected files matched in excluded regions the build is canceled");
             return false;
             
         } catch (Exception e) {
@@ -128,8 +150,12 @@ public class IncludeRegionBranchBuildStrategy extends BranchBuildStrategyExtensi
     @Extension
     public static class DescriptorImpl extends BranchBuildStrategyDescriptor {
         public String getDisplayName() {
-            return "Build included regions strategy";
+            return "Cancel ci by ignore file strategy";
         }
     }
+    
+    
+ 
+    
 
 }

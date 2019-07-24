@@ -44,10 +44,10 @@ import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceOwner;
 
-public abstract class RegionBranchBuildStrategy extends BranchBuildStrategy{
+public abstract class BranchBuildStrategyExtension extends BranchBuildStrategy{
 
 		private final static int HASH_LENGTH = 40;
-		private static final Logger logger = Logger.getLogger(RegionBranchBuildStrategy.class.getName());
+		private static final Logger logger = Logger.getLogger(BranchBuildStrategyExtension.class.getName());
 	
 	   protected SCMFileSystem   buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision,SCM scm,SCMSourceOwner owner) throws Exception{
 	    	GitSCMFileSystem.Builder builder = new GitSCMFileSystem.BuilderImpl(); 
@@ -79,5 +79,13 @@ public abstract class RegionBranchBuildStrategy extends BranchBuildStrategy{
 	        	}
 	        }
 	        return pathesSet;
+	    }
+	   
+	   protected Set<String> collectAllComments(List<GitChangeSet> gitChangeSetList) {
+	    	Set<String> comments = new HashSet<String>();
+	        for (GitChangeSet gitChangeSet : gitChangeSetList) {
+	        	comments.add(gitChangeSet.getComment());
+	        }
+	        return comments;
 	    }
 }

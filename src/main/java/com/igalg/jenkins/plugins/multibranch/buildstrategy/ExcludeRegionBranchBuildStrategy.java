@@ -43,7 +43,7 @@ import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceOwner;
 
-public class ExcludeRegionBranchBuildStrategy extends RegionBranchBuildStrategy {
+public class ExcludeRegionBranchBuildStrategy extends BranchBuildStrategyExtension {
     
 	private static final Logger logger = Logger.getLogger(ExcludeRegionBranchBuildStrategy.class.getName());
     private final String excludedRegions;
