@@ -104,7 +104,7 @@ public class ExcludeByIgnoreFileBranchBuildStrategy extends BranchBuildStrategyE
             logger.info(String.format("Excluded file content: %s", ignoreString));
             
             List<String> excludedRegionsList = Arrays.stream(
-            		ignoreString.split("\n")).map(e -> e.trim()).collect(Collectors.toList());
+            		ignoreString.split("\n")).filter(p -> !p.startsWith("#")).map(e -> e.trim()).collect(Collectors.toList());
 
             logger.info(String.format("Excluded regions: %s", excludedRegionsList.toString()));
             

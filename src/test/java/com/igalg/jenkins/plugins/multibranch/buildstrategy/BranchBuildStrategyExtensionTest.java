@@ -173,7 +173,7 @@ public class BranchBuildStrategyExtensionTest{
         SCMFile scmRoot = Mockito.mock(SCMFile.class);
         Mockito.when(fileSystemMock.getRoot()).thenReturn(scmRoot);
         Mockito.when(scmRoot.child(".jenkinsignore")).thenReturn(scmFile);
-        Mockito.when(scmFile.contentAsString()).thenReturn("*.md\n*.gitignore");
+        Mockito.when(scmFile.contentAsString()).thenReturn("*.md\n#*.md\n*.gitignore");
         
     }
       
