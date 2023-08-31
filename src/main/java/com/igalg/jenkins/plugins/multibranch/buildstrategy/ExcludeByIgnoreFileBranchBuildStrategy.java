@@ -96,7 +96,7 @@ public class ExcludeByIgnoreFileBranchBuildStrategy extends BranchBuildStrategyE
             SCMFile file = fileSystem.getRoot().child(ignorefilePath);
             if(file == null || !file.exists() || !file.isFile()) {
             	logger.severe("File:" + ignorefilePath + " not found");
-            	
+            	return true;
             }
             
             		
