@@ -23,113 +23,41 @@
  */
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
 
-import hudson.Extension;
-import hudson.scm.SCM;
-import jenkins.branch.BranchBuildStrategyDescriptor;
-import jenkins.scm.api.SCMFileSystem;
-import jenkins.scm.api.SCMHead;
-import jenkins.scm.api.SCMRevision;
-import jenkins.scm.api.SCMSource;
-import jenkins.scm.api.SCMSourceOwner;
+abstract class IncludeRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
 
-public class IncludeRegionBranchBuildStrategy extends BranchBuildStrategyExtension {
-    
-	private static final Logger logger = Logger.getLogger(IncludeRegionBranchBuildStrategy.class.getName());
-    private final String includedRegions;
-    
-    public String getIncludedRegions() {
-		return includedRegions;
-	}
+    private static final Logger LOGGER = Logger.getLogger(IncludeRegionBranchBuildStrategy.class.getName());
 
-
-    @DataBoundConstructor
-    public IncludeRegionBranchBuildStrategy(String includedRegions) {
-        this.includedRegions = includedRegions;
+    protected IncludeRegionBranchBuildStrategy() {
+        super(Strategy.INCLUDED);
     }
 
-    
-
-   
     /**
      * Determine if build is required by checking if any of the commit affected files is in the include regions.
      *
-     * @return true if  there is at least one affected file in the include regions 
+     * @return {@code true} if at least one file matches in the include regions
      */
     @Override
-    public boolean isAutomaticBuild(SCMSource source, SCMHead head, SCMRevision currRevision, SCMRevision prevRevision) {
-        try {
-        	
-        	 List<String> includedRegionsList = Arrays.stream(
-             		includedRegions.split("\n")).map(e -> e.trim()).collect(Collectors.toList());
-
-             logger.info(String.format("Included regions: %s", includedRegionsList.toString()));
-             
-             // No regions included cancel the build
-             if(includedRegionsList.isEmpty())
-             	return false;
-        	
-        	
-        	// build SCM object
-        	SCM scm = source.build(head, currRevision);
-            
-  
-        	// Verify source owner
-        	SCMSourceOwner owner = source.getOwner();
-            if (owner == null) {
-                logger.severe("Error verify SCM source owner");
-                return true;
+    boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
+        for (String path : paths) {
+            for (String pattern : patterns) {
+                if (SelectorUtils.matchPath(pattern, path)) {
+                    LOGGER.log(Level.INFO, () -> "Matched included region: " + pattern + " with file path: " + path);
+                    return true; // If at least one file matches for, run the build
+                } else {
+                    LOGGER.log(Level.FINE, () -> "Not matched included region: " + pattern + " with file path: " + path);
+                }
             }
-            
-            
-            // Build SCM file system
-            SCMFileSystem fileSystem = buildSCMFileSystem(source,head,currRevision,scm,owner);            
-            if (fileSystem == null) {
-                logger.severe("Error build SCM file system");
-                return true;
-            }
-            
-            List<String> pathesList = new ArrayList<String>(collectAllAffectedFiles(getGitChangeSetListFromPrevious(fileSystem, head, prevRevision)));
-            // If there is match for at least one file run the build
-            for (String filePath : pathesList){
-    			for(String includedRegion:includedRegionsList) {    				
-    				if(SelectorUtils.matchPath(includedRegion, filePath)) {
-    					logger.info("Matched included region:" + includedRegion + " with file path:" + filePath);
-    					return true;
-    				}else {
-    					logger.fine("Not matched included region:" + includedRegion + " with file path:" + filePath);
-    				}
-    			}
-            }
-            
-            
-            return false;
-            
-        } catch (Exception e) {
-            //we don't want to cancel builds on unexpected exception
-        	logger.log(Level.SEVERE, "Unecpected exception", e);
-            return true;
         }
-        
-        
 
-    }
+        LOGGER.log(Level.INFO, () -> "No matching any included regions, skipping build");
 
-    @Extension
-    public static class DescriptorImpl extends BranchBuildStrategyDescriptor {
-        public String getDisplayName() {
-            return "Build included regions strategy";
-        }
+        return false;
     }
 
 }

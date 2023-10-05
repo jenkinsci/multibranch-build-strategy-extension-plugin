@@ -23,25 +23,34 @@
  */
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
+import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.toPatterns;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.Set;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import jenkins.branch.BranchBuildStrategyDescriptor;
+import jenkins.scm.api.SCMFileSystem;
 
-@Deprecated
-public class ExcludeByIgnoreFileBranchBuildStrategy extends ExcludeRegionByFileBranchBuildStrategy {
+public class ExcludeRegionByFieldBranchBuildStrategy extends ExcludeRegionBranchBuildStrategy {
+
+    private final String excludedRegions;
 
     @DataBoundConstructor
-    public ExcludeByIgnoreFileBranchBuildStrategy(String ignorefilePath) {
-        super(StringUtils.isBlank(ignorefilePath) ? ".jenkinsignore" : ignorefilePath);
+    public ExcludeRegionByFieldBranchBuildStrategy(String excludedRegions) {
+        this.excludedRegions = excludedRegions;
     }
 
     @SuppressWarnings("unused") // to keep for UI filling
-    public String getIgnorefilePath() {
-        return getExcludeFilePath();
+    public String getExcludedRegions() {
+        return excludedRegions;
+    }
+
+    @Override
+    Set<String> getPatterns(SCMFileSystem fileSystem) {
+        return toPatterns(excludedRegions);
     }
 
     @Extension
@@ -50,8 +59,9 @@ public class ExcludeByIgnoreFileBranchBuildStrategy extends ExcludeRegionByFileB
         @NonNull
         @Override
         public String getDisplayName() {
-            return "Cancel ci by ignore file strategy - deprecated";
+            return "Cancel build by excluded regions strategy";
         }
     }
+
 
 }
