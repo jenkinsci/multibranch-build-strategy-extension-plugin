@@ -1,8 +1,8 @@
 <div>
-    Each inclusion uses <a href="https://ant.apache.org/manual/dirtasks.html">ant pattern matching</a>, and must be
-    separated by a new line.<br/>
+    Path to file containing the regions to use as include strategy.<br/>
     An empty list implies that nothing is included.
     <pre>
+    # Any changes on java files will trigger build
     src/main/java/**/*.java
   </pre>
     The example above illustrates that a build will only occur, if at least one java file have been committed to the SCM
