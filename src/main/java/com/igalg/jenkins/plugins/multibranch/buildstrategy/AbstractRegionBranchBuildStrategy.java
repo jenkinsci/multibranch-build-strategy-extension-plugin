@@ -23,40 +23,33 @@
  */
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
+import hudson.plugins.git.GitChangeSet;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.tools.ant.types.selectors.SelectorUtils;
+abstract class AbstractRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
 
-abstract class IncludeRegionBranchBuildStrategy extends AbstractRegionBranchBuildStrategy {
+    private static final Logger LOGGER = Logger.getLogger(AbstractRegionBranchBuildStrategy.class.getName());
 
-    private static final Logger LOGGER = Logger.getLogger(IncludeRegionBranchBuildStrategy.class.getName());
-
-    protected IncludeRegionBranchBuildStrategy() {
-        super(Strategy.INCLUDED);
+    protected AbstractRegionBranchBuildStrategy(Strategy strategy) {
+        super(strategy);
     }
 
-    /**
-     * Determine if build is required by checking if any of the commit affected files is in the included regions.
-     *
-     * @return {@code true} if at least one file matches in the included regions
-     */
-    @Override
-    boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
-        for (String path : paths) {
-            for (String pattern : patterns) {
-                if (SelectorUtils.matchPath(pattern, path)) {
-                    LOGGER.log(Level.INFO, () -> "Matched included region: " + pattern + " with file path: " + path);
-                    return true; // if at least one file matches for, run the build
-                } else {
-                    LOGGER.log(Level.FINE, () -> "Not matched included region: " + pattern + " with file path: " + path);
-                }
+    Set<String> getExpressions(List<GitChangeSet> changeSets) {
+        final Set<String> paths = new HashSet<>();
+        for (GitChangeSet changeSet : changeSets) {
+            Collection<GitChangeSet.Path> affectedFiles = changeSet.getAffectedFiles();
+            for (GitChangeSet.Path path : affectedFiles) {
+                paths.add(path.getPath());
+                LOGGER.log(Level.FINE, () -> "File: " + path.getPath() + " from commit: " + changeSet.getCommitId() + "; change type:" + path.getEditType().getName());
             }
         }
 
-        LOGGER.log(Level.INFO, () -> "No matching any included regions, skipping build");
-
-        return false;
+        return paths;
     }
 }

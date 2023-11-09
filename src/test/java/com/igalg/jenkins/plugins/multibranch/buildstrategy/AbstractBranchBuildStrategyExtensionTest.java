@@ -61,11 +61,14 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
         private final Set<String> patterns;
 
-        boolean tick = false;
+        private final Set<String> expressions;
 
-        protected TestBranchBuildStrategy(Strategy strategy, Set<String> patterns) {
+        boolean isShouldRunBuildExecuted = false;
+
+        protected TestBranchBuildStrategy(Strategy strategy, Set<String> patterns, Set<String> expressions) {
             super(strategy);
             this.patterns = patterns;
+            this.expressions = expressions;
         }
 
         @Override
@@ -74,30 +77,41 @@ public class AbstractBranchBuildStrategyExtensionTest {
         }
 
         @Override
-        boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
-            tick = true;
+        Set<String> getExpressions(List<GitChangeSet> changeSets) {
+            return expressions;
+        }
+
+        @Override
+        boolean shouldRunBuild(Set<String> patterns, Set<String> expressions) {
+            isShouldRunBuildExecuted = true;
             return false;
         }
     }
 
     @Mock
     protected SCMHead head;
+
     @Mock
     protected GitSCMSource source;
+
     @Mock
     protected SCMRevisionImpl currRevision;
+
     @Mock
     protected SCMRevisionImpl lastBuiltRevision;
+
     @Mock
     protected SCMRevisionImpl lastSeenRevision;
+
     @Mock
     protected TaskListener listener;
 
     @Test
     public void should_return_TRUE_when_exceptionOccurred() {
         // given
-        Set<String> excludeRegions = Sets.newHashSet();
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludeRegions);
+        Set<String> patterns = Sets.newHashSet();
+        Set<String> expressions = Sets.newHashSet();
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
         given(source.getOwner()).willThrow(RuntimeException.class);
 
@@ -106,14 +120,15 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
         // then
         assertTrue(result);
-        assertFalse(buildStrategy.tick);
+        assertFalse(buildStrategy.isShouldRunBuildExecuted);
     }
 
     @Test
     public void should_return_TRUE_when_failsToGetOwner() {
         // given
-        Set<String> excludeRegions = Sets.newHashSet();
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludeRegions);
+        Set<String> patterns = Sets.newHashSet();
+        Set<String> expressions = Sets.newHashSet();
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
         given(source.getOwner()).willReturn(null);
 
@@ -122,14 +137,15 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
         // then
         assertTrue(result);
-        assertFalse(buildStrategy.tick);
+        assertFalse(buildStrategy.isShouldRunBuildExecuted);
     }
 
     @Test
     public void should_return_TRUE_when_failsToGetFileSystem() {
         // given
-        Set<String> excludeRegions = Sets.newHashSet();
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludeRegions);
+        Set<String> patterns = Sets.newHashSet();
+        Set<String> expressions = Sets.newHashSet();
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
         SCM scm = mock(SCM.class);
         given(source.build(head, currRevision)).willReturn(scm);
@@ -145,15 +161,16 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
             // then
             assertTrue(result);
-            assertFalse(buildStrategy.tick);
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }
 
     @Test
     public void should_return_TRUE_when_patternsEmptyAndStrategyExcluded() {
         // given
-        Set<String> excludeRegions = Sets.newHashSet();
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludeRegions);
+        Set<String> patterns = Sets.newHashSet();
+        Set<String> expressions = Sets.newHashSet();
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
         SCMSourceOwner owner = mock(SCMSourceOwner.class);
         given(source.getOwner()).willReturn(owner);
@@ -162,6 +179,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
         given(source.build(head, currRevision)).willReturn(scm);
 
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
 
@@ -170,15 +188,16 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
             // then
             assertTrue(result);
-            assertFalse(buildStrategy.tick);
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }
 
     @Test
     public void should_return_FALSE_when_patternsEmptyAndStrategyIncluded() {
         // given
-        Set<String> includeRegions = Sets.newHashSet();
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, includeRegions);
+        Set<String> patterns = Sets.newHashSet();
+        Set<String> expressions = Sets.newHashSet();
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, patterns, expressions);
 
         SCMSourceOwner owner = mock(SCMSourceOwner.class);
         given(source.getOwner()).willReturn(owner);
@@ -187,6 +206,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
         given(source.build(head, currRevision)).willReturn(scm);
 
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
 
@@ -195,15 +215,16 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
             // then
             assertFalse(result);
-            assertFalse(buildStrategy.tick);
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }
 
     @Test
-    public void should_checkPathsAgainstPatterns() {
+    public void should_checkExpressionsAgainstPatterns() {
         // given
-        Set<String> includeRegions = Sets.newHashSet("**/*.java", "src/main/resource/**/*.*");
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, includeRegions);
+        Set<String> includedRegions = Sets.newHashSet("**/*.java", "src/main/resource/**/*.*");
+        Set<String> paths = Sets.newHashSet("src/main/java/com/a/a.java", "src/main/java/com/a/b.java", "README.md");
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, includedRegions, paths);
 
         SCMSourceOwner owner = mock(SCMSourceOwner.class);
         given(source.getOwner()).willReturn(owner);
@@ -211,33 +232,16 @@ public class AbstractBranchBuildStrategyExtensionTest {
         SCM scm = mock(SCM.class);
         given(source.build(head, currRevision)).willReturn(scm);
 
-        final List<GitChangeSet> changedSets = changeSets("src/main/java/com/a/a.java", "src/main/java/com/a/b.java", "README.md");
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
-            mockedHelper.when(() -> BranchBuildStrategyHelper.getGitChangeSetListFromPrevious(fileSystem, head, lastBuiltRevision)).thenReturn(changedSets);
 
             // when
             buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
 
             // then
-            assertTrue(buildStrategy.tick);
+            assertTrue(buildStrategy.isShouldRunBuildExecuted);
         }
     }
-
-    protected static List<GitChangeSet> changeSets(String... affectedFiles) {
-        GitChangeSet gitChangeSet = mock(GitChangeSet.class);
-//        given(gitChangeSet.getCommitId()).willReturn("commitId");
-        List<GitChangeSet.Path> affectedPaths = new ArrayList<>();
-        for (String affectedFile : affectedFiles) {
-            GitChangeSet.Path path = mock(GitChangeSet.Path.class);
-            given(path.getPath()).willReturn(affectedFile);
-            affectedPaths.add(path);
-        }
-        given(gitChangeSet.getAffectedFiles()).willReturn(affectedPaths);
-
-        return Collections.singletonList(gitChangeSet);
-    }
-
-
 }

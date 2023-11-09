@@ -15,5 +15,4 @@ public class ExcludeRegionByFileBranchBuildStrategyIntegrationTest extends Exclu
         sampleGitRepo.git("add", ".jenkinsExcludeFile");
         sampleGitRepo.git("commit", "--all", "--message=add exclusion file");
     }
-
 }

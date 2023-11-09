@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
 
-abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
+abstract class ExcludeRegionBranchBuildStrategy extends AbstractRegionBranchBuildStrategy {
 
     private static final Logger LOGGER = Logger.getLogger(ExcludeRegionBranchBuildStrategy.class.getName());
 
@@ -38,9 +38,9 @@ abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrat
     }
 
     /**
-     * Determine if build is required by checking if all the commits affected files are in the exclude regions.
+     * Determine if build is required by checking if all the commits affected files are in the excluded regions.
      *
-     * @return {@code true} if at least one file does not match the exclude regions
+     * @return {@code true} if at least one file does not match the excluded regions
      */
     @Override
     boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
@@ -66,5 +66,4 @@ abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrat
 
         return false;
     }
-
 }

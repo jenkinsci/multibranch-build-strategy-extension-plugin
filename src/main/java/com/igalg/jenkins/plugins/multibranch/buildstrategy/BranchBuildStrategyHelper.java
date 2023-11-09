@@ -66,12 +66,12 @@ final class BranchBuildStrategyHelper {
         }
     }
 
-    static List<GitChangeSet> getGitChangeSetListFromPrevious(SCMFileSystem fileSystem, SCMHead head, SCMRevision prevRevision) throws IOException, InterruptedException {
+    static List<GitChangeSet> getGitChangeSetList(SCMFileSystem fileSystem, SCMHead head, SCMRevision revision) throws IOException, InterruptedException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        if (prevRevision != null && !(prevRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            fileSystem.changesSince(new AbstractGitSCMSource.SCMRevisionImpl(head, prevRevision.toString().substring(0, HASH_LENGTH)), out);
+        if (revision != null && !(revision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
+            fileSystem.changesSince(new AbstractGitSCMSource.SCMRevisionImpl(head, revision.toString().substring(0, HASH_LENGTH)), out);
         } else {
-            fileSystem.changesSince(prevRevision, out);
+            fileSystem.changesSince(revision, out);
         }
         GitChangeLogParser parser = new GitChangeLogParser(null, false);
         return parser.parse(new ByteArrayInputStream(out.toByteArray()));
