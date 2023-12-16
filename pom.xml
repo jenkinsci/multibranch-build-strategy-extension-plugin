@@ -114,7 +114,7 @@
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-support</artifactId>
             <classifier>tests</classifier>
-            <version>813.vb_d7c3d2984a_0</version>
+            <version>865.v43e78cc44e0d</version>
             <scope>test</scope>
         </dependency>
         <dependency>
