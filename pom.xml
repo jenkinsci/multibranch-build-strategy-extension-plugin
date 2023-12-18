@@ -158,7 +158,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>1143.v2d42f1e9dea_5</version>
+            <version>1283.v99c10937efcb_</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
