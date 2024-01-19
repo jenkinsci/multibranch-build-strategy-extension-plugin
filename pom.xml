@@ -15,9 +15,9 @@
     <packaging>hpi</packaging>
     <name>Pipeline: Multibranch build strategy extension</name>
 
-    <description>This plugin provides additional configuration for multi branch build strategies.</description>
+    <description>This plugin provides additional configuration for multibranch build strategies.</description>
 
-    <url>https://wiki.jenkins.io/display/JENKINS/Multibranch+Build+Strategy+Extension+Plugin</url>
+    <url>https://github.com/jenkinsci/multibranch-build-strategy-extension-plugin</url>
 
     <properties>
         <revision>1.1.0</revision>
