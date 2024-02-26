@@ -80,7 +80,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>branch-api</artifactId>
-            <version>2.7.0</version>
+            <version>2.1152.v6f101e97dd77</version>
         </dependency>
 
         <!-- TESTS -->
