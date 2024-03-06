@@ -24,13 +24,10 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.buildSCMFileSystem;
-import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getGitChangeSetListFromPrevious;
+import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getGitChangeSetList;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -63,7 +60,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
     @Override
     public boolean isAutomaticBuild(@NonNull SCMSource source, @NonNull SCMHead head, @NonNull SCMRevision currRevision, SCMRevision lastBuiltRevision, SCMRevision lastSeenRevision, @NonNull TaskListener listener) {
         try {
-            // Verify source owner
+            // verify source owner
             final SCMSourceOwner owner = source.getOwner();
             if (owner == null) {
                 LOGGER.severe("Error verify SCM source owner");
@@ -72,33 +69,36 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
             // build SCM object
             final SCM scm = source.build(head, currRevision);
-            // Build SCM file system
+
+            // build SCM file system
             final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner);
             if (fileSystem == null) {
                 LOGGER.severe("Error build SCM file system");
                 return true;
             }
 
+            // get patterns
             final Set<String> patterns = getPatterns(fileSystem);
             if (patterns.isEmpty()) {
                 boolean build = strategy == Strategy.EXCLUDED;
-                LOGGER.log(Level.INFO, () -> String.format("No pattern with strategy: %s, building=%s", strategy, build));
+                LOGGER.info(() -> String.format("No pattern with strategy: %s, building=%s", strategy, build));
                 return build;
             }
 
-            LOGGER.log(Level.FINE, () -> String.format("Strategy: %s, regions: [%s]", strategy, String.join(", ", patterns)));
+            // collect all changes from previous build
+            final List<GitChangeSet> changeSets = getGitChangeSetList(fileSystem, head, lastBuiltRevision);
 
-            // Collect all changes from previous build
-            final List<GitChangeSet> changeSets = getGitChangeSetListFromPrevious(fileSystem, head, lastBuiltRevision);
-            final Set<String> paths = collectAllAffectedFiles(changeSets);
+            // get expressions to check matching to pattern
+            final Set<String> expressions = getExpressions(changeSets);
 
-            return shouldRunBuild(patterns, paths);
+            LOGGER.fine(() -> String.format("Strategy: %s, patterns: [%s], expressions: [%s]", strategy, String.join(", ", patterns), String.join(", ", expressions)));
 
+            return shouldRunBuild(patterns, expressions);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+            LOGGER.severe("Unexpected exception: " + e);
 
             if (e instanceof InterruptedException) {
-                // Clean up whatever needs to be handled before interrupting
+                // clean up whatever needs to be handled before interrupting
                 Thread.currentThread().interrupt();
             }
 
@@ -111,18 +111,8 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
     abstract Set<String> getPatterns(SCMFileSystem fileSystem);
 
     @VisibleForTesting
-    abstract boolean shouldRunBuild(Set<String> patterns, Set<String> paths);
+    abstract Set<String> getExpressions(List<GitChangeSet> changeSets);
 
-    private static Set<String> collectAllAffectedFiles(List<GitChangeSet> gitChangeSets) {
-        final Set<String> paths = new HashSet<>();
-        for (GitChangeSet gitChangeSet : gitChangeSets) {
-            Collection<GitChangeSet.Path> affectedFiles = gitChangeSet.getAffectedFiles();
-            for (GitChangeSet.Path path : affectedFiles) {
-                paths.add(path.getPath());
-                LOGGER.log(Level.FINE, () -> "File: " + path.getPath() + " from commit:" + gitChangeSet.getCommitId() + " Change type:" + path.getEditType().getName());
-            }
-        }
-
-        return paths;
-    }
+    @VisibleForTesting
+    abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions);
 }

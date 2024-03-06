@@ -24,12 +24,11 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
 
-abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
+abstract class ExcludeRegionBranchBuildStrategy extends AbstractRegionBranchBuildStrategy {
 
     private static final Logger LOGGER = Logger.getLogger(ExcludeRegionBranchBuildStrategy.class.getName());
 
@@ -38,9 +37,9 @@ abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrat
     }
 
     /**
-     * Determine if build is required by checking if all the commits affected files are in the exclude regions.
+     * Determine if build is required by checking if all the commits affected files are in the excluded regions.
      *
-     * @return {@code true} if at least one file does not match the exclude regions
+     * @return {@code true} if at least one file does not match the excluded regions
      */
     @Override
     boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
@@ -48,23 +47,22 @@ abstract class ExcludeRegionBranchBuildStrategy extends AbstractBranchBuildStrat
             boolean isNotMatchingAnyRegion = true;
             for (String pattern : patterns) {
                 if (SelectorUtils.matchPath(pattern, path)) {
-                    LOGGER.log(Level.FINE, () -> "Matched excluded region: " + pattern + " with file path: " + path);
+                    LOGGER.fine(() -> "Matched excluded region: " + pattern + " with file path: " + path);
                     isNotMatchingAnyRegion = false;
                     break;
                 } else {
-                    LOGGER.log(Level.FINE, () -> "Not matching excluded region: " + pattern + " with file path: " + path);
+                    LOGGER.fine(() -> "Not matching excluded region: " + pattern + " with file path: " + path);
                 }
             }
 
             if (isNotMatchingAnyRegion) {
-                LOGGER.log(Level.INFO, () -> "File: " + path + " does not match any excluded region " + patterns + ", build should be triggered");
+                LOGGER.info(() -> "File: " + path + " does not match any excluded region " + patterns + ", build should be triggered");
                 return true;
             }
         }
 
-        LOGGER.log(Level.INFO, () -> "All changes matching excluded regions, skipping build");
+        LOGGER.info(() -> "All changes matching excluded regions, skipping build");
 
         return false;
     }
-
 }

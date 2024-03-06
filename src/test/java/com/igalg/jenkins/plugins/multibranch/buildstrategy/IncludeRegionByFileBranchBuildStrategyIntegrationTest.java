@@ -15,5 +15,4 @@ public class IncludeRegionByFileBranchBuildStrategyIntegrationTest extends Inclu
         sampleGitRepo.git("add", ".jenkinsIncludeFile");
         sampleGitRepo.git("commit", "--all", "--message=add inclusion file");
     }
-
 }

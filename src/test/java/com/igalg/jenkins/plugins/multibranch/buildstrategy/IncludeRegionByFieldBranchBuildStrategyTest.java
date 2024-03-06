@@ -74,5 +74,4 @@ public class IncludeRegionByFieldBranchBuildStrategyTest {
         // then
         assertFalse(result);
     }
-
 }

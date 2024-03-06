@@ -77,5 +77,4 @@ public class ExcludeRegionByFieldBranchBuildStrategyTest {
         // then
         assertFalse(result);
     }
-
 }

@@ -1,0 +1,14 @@
+<div>
+Each exclusion uses <b>Java pattern matching</b> based on standard java.util.regex package, and must be separated
+by a new line.<br/>
+
+An empty list implies that nothing is excluded.
+
+<pre>
+.*\[ci\-skip\].*
+.*\[maven\-release\-plugin\].*
+</pre>
+
+The example above illustrates that if last commit contains "[ci-skip]" or "[maven-release-plugin]" phrase somewhere
+in commit message, a build will not occur.
+</div>

@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNull;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Test;
 
-abstract class ExcludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest{
+abstract class ExcludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest {
 
     protected static final String EXCLUDED_REGIONS = "file\nJenkinsfile\nfoo/**";
 
