@@ -28,7 +28,6 @@ import hudson.plugins.git.GitChangeSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +44,7 @@ abstract class AbstractMessageBranchBuildStrategy extends AbstractBranchBuildStr
     Set<String> getExpressions(List<GitChangeSet> changeSets) {
         GitChangeSet lastCommit = changeSets.get(0);
         final String commitMessage = lastCommit.getMsg();
-        LOGGER.log(Level.FINE, () -> "Message: \"" + commitMessage + "\" from commit: " + lastCommit.getCommitId());
+        LOGGER.fine(() -> "Message: \"" + commitMessage + "\" from commit: " + lastCommit.getCommitId());
 
         return Collections.singleton(commitMessage);
     }
@@ -57,20 +56,20 @@ abstract class AbstractMessageBranchBuildStrategy extends AbstractBranchBuildStr
 
         for (String pattern : patterns) {
             if (matchPattern(pattern, message)) {
-                LOGGER.log(Level.FINE, () -> "Matched excluded message pattern: " + pattern + " for message: \"" + message + "\"");
+                LOGGER.fine(() -> "Matched excluded message pattern: " + pattern + " for message: \"" + message + "\"");
                 isNotMatchingAnyPattern = false;
                 break;
             } else {
-                LOGGER.log(Level.FINE, () -> "Not matching excluded message pattern: " + pattern + " for message: \"" + message + "\"");
+                LOGGER.fine(() -> "Not matching excluded message pattern: " + pattern + " for message: \"" + message + "\"");
             }
         }
 
         if (isNotMatchingAnyPattern) {
-            LOGGER.log(Level.INFO, () -> "Message: \"" + message + "\" does not match any excluded message pattern [" + String.join(", ", patterns) + "], build should be triggered");
+            LOGGER.info(() -> "Message: \"" + message + "\" does not match any excluded message pattern [" + String.join(", ", patterns) + "], build should be triggered");
             return true;
         }
 
-        LOGGER.log(Level.INFO, "Commit message matching excluded message pattern, skipping build");
+        LOGGER.info("Commit message matching excluded message pattern, skipping build");
         return false;
     }
 

@@ -24,7 +24,6 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
@@ -47,15 +46,15 @@ abstract class IncludeRegionBranchBuildStrategy extends AbstractRegionBranchBuil
         for (String path : paths) {
             for (String pattern : patterns) {
                 if (SelectorUtils.matchPath(pattern, path)) {
-                    LOGGER.log(Level.INFO, () -> "Matched included region: " + pattern + " with file path: " + path);
+                    LOGGER.fine(() -> "Matched included region: " + pattern + " with file path: " + path);
                     return true; // if at least one file matches for, run the build
                 } else {
-                    LOGGER.log(Level.FINE, () -> "Not matched included region: " + pattern + " with file path: " + path);
+                    LOGGER.fine(() -> "Not matched included region: " + pattern + " with file path: " + path);
                 }
             }
         }
 
-        LOGGER.log(Level.INFO, () -> "No matching any included regions, skipping build");
+        LOGGER.info(() -> "No matching any included regions, skipping build");
 
         return false;
     }

@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -79,17 +78,17 @@ final class BranchBuildStrategyHelper {
 
     static Set<String> getPatternsFromFile(SCMFileSystem fileSystem, String filePath) {
         try {
-            LOGGER.log(Level.INFO, () -> String.format("Looking for file: %s", filePath));
+            LOGGER.info(() -> String.format("Looking for file: %s", filePath));
 
             final SCMFile ignorefile = fileSystem.getRoot().child(filePath);
             if (!ignorefile.exists() || !ignorefile.isFile()) {
-                LOGGER.log(Level.SEVERE, () -> String.format("File: %s not found", filePath));
+                LOGGER.severe(() -> String.format("File: %s not found", filePath));
                 return Collections.emptySet();
             }
 
             return toPatterns(ignorefile.contentAsString());
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+            LOGGER.severe("Unexpected exception: " + e);
 
             if (e instanceof InterruptedException) {
                 // Clean up whatever needs to be handled before interrupting

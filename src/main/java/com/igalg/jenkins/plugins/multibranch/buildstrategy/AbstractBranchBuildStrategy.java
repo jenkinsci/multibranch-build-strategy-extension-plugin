@@ -28,7 +28,6 @@ import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStr
 
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -64,7 +63,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // verify source owner
             final SCMSourceOwner owner = source.getOwner();
             if (owner == null) {
-                LOGGER.log(Level.SEVERE, "Error verify SCM source owner");
+                LOGGER.severe("Error verify SCM source owner");
                 return true;
             }
 
@@ -74,7 +73,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // build SCM file system
             final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner);
             if (fileSystem == null) {
-                LOGGER.log(Level.SEVERE, "Error build SCM file system");
+                LOGGER.severe("Error build SCM file system");
                 return true;
             }
 
@@ -82,7 +81,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             final Set<String> patterns = getPatterns(fileSystem);
             if (patterns.isEmpty()) {
                 boolean build = strategy == Strategy.EXCLUDED;
-                LOGGER.log(Level.INFO, () -> String.format("No pattern with strategy: %s, building=%s", strategy, build));
+                LOGGER.info(() -> String.format("No pattern with strategy: %s, building=%s", strategy, build));
                 return build;
             }
 
@@ -92,16 +91,11 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // get expressions to check matching to pattern
             final Set<String> expressions = getExpressions(changeSets);
 
-            LOGGER.log(Level.FINE, () ->
-                    String.format("Strategy: %s, patterns: [%s], expressions: [%s]",
-                            strategy,
-                            String.join(", ", patterns),
-                            String.join(", ", expressions))
-            );
+            LOGGER.fine(() -> String.format("Strategy: %s, patterns: [%s], expressions: [%s]", strategy, String.join(", ", patterns), String.join(", ", expressions)));
 
             return shouldRunBuild(patterns, expressions);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected exception", e);
+            LOGGER.severe("Unexpected exception: " + e);
 
             if (e instanceof InterruptedException) {
                 // clean up whatever needs to be handled before interrupting

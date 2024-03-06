@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 abstract class AbstractRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
@@ -46,7 +45,7 @@ abstract class AbstractRegionBranchBuildStrategy extends AbstractBranchBuildStra
             Collection<GitChangeSet.Path> affectedFiles = changeSet.getAffectedFiles();
             for (GitChangeSet.Path path : affectedFiles) {
                 paths.add(path.getPath());
-                LOGGER.log(Level.FINE, () -> "File: " + path.getPath() + " from commit: " + changeSet.getCommitId() + "; change type:" + path.getEditType().getName());
+                LOGGER.fine(() -> "File: " + path.getPath() + " from commit: " + changeSet.getCommitId() + "; change type:" + path.getEditType().getName());
             }
         }
 
