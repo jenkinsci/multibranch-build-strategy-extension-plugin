@@ -27,6 +27,7 @@ public class BranchBuildStrategyHelperTest {
 
     @Mock
     private SCMFile root;
+
     @Mock
     private SCMFile child;
 
@@ -140,5 +141,4 @@ public class BranchBuildStrategyHelperTest {
         assertTrue(patterns.contains("path/foo/**"));
         assertTrue(patterns.contains("path/bar/**"));
     }
-
 }

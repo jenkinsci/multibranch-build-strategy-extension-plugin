@@ -20,6 +20,7 @@ abstract class BaseBuildStrategyIntegrationTest {
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
+
     @Rule
     public GitSampleRepoRule sampleGitRepo = new GitSampleRepoRule();
 

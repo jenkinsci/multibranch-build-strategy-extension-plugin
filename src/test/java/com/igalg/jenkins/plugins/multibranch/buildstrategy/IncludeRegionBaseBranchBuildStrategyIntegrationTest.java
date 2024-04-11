@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNull;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Test;
 
-abstract class IncludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest{
+abstract class IncludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest {
 
     protected static final String INCLUDED_REGIONS = "foo/**";
 

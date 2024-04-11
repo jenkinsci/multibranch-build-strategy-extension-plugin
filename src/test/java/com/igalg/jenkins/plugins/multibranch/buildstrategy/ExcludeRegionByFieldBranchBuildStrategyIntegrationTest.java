@@ -8,5 +8,4 @@ public class ExcludeRegionByFieldBranchBuildStrategyIntegrationTest extends Excl
     BranchBuildStrategy getBuildStrategy() {
         return new ExcludeRegionByFieldBranchBuildStrategy(EXCLUDED_REGIONS);
     }
-
 }
