@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.80</version>
+        <version>4.88</version>
         <relativePath />
     </parent>
 
@@ -23,9 +23,8 @@
         <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/multibranch-build-strategy-extension</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.baseline>2.426</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
-        <java.level>17</java.level>
+        <jenkins.baseline>2.452</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.4</jenkins.version>
     </properties>
 
     <licenses>
@@ -73,7 +72,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>2961.v1f472390972e</version>
+                <version>3944.v1a_e4f8b_452db_</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
