@@ -42,6 +42,7 @@ import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceOwner;
+import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
 
 public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
@@ -83,6 +84,11 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
                 boolean build = strategy == Strategy.EXCLUDED;
                 LOGGER.info(() -> String.format("No pattern with strategy: %s, building=%s", strategy, build));
                 return build;
+            }
+
+            // If this is the first build of a change request, compare against the target.
+            if (lastBuiltRevision == null && currRevision instanceof ChangeRequestSCMRevision) {
+                lastBuiltRevision = ((ChangeRequestSCMRevision) currRevision).getTarget();
             }
 
             // collect all changes from previous build
