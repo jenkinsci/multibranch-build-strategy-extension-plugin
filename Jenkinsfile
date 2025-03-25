@@ -1,7 +1,6 @@
 #!groovy
 
-buildPlugin(
-        useContainerAgent: true,
-        platforms: ['linux', 'windows'],
-        jdkVersions: [11]
-)
+buildPlugin(useContainerAgent: true, configurations: [
+  [platform: 'linux', jdk: 21],
+  [platform: 'windows', jdk: 17],
+])
