@@ -28,10 +28,10 @@ import static com.igalg.jenkins.plugins.multibranch.buildstrategy.AbstractBranch
 import static jenkins.plugins.git.AbstractGitSCMSource.SCMRevisionImpl;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -44,12 +44,10 @@ import com.google.common.collect.Sets;
 
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitChangeSet;
-import hudson.scm.SCM;
 import jenkins.plugins.git.GitSCMFileSystem;
 import jenkins.plugins.git.GitSCMSource;
 import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMHead;
-import jenkins.scm.api.SCMSourceOwner;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -113,8 +111,6 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> expressions = Sets.newHashSet();
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
-        given(source.getOwner()).willThrow(RuntimeException.class);
-
         // when
         boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
 
@@ -129,8 +125,6 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
-
-        given(source.getOwner()).willReturn(null);
 
         // when
         boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
@@ -147,14 +141,8 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> expressions = Sets.newHashSet();
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
-        SCM scm = mock(SCM.class);
-        given(source.build(head, currRevision)).willReturn(scm);
-
-        SCMSourceOwner owner = mock(SCMSourceOwner.class);
-        given(source.getOwner()).willReturn(owner);
-
-        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(null);
+        try (MockedStatic<SCMFileSystem> mockedFileSystem = mockStatic(SCMFileSystem.class)) {
+            mockedFileSystem.when(() -> SCMFileSystem.of(source, head, currRevision)).thenReturn(null);
 
             // when
             boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
@@ -172,16 +160,10 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> expressions = Sets.newHashSet();
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, expressions);
 
-        SCMSourceOwner owner = mock(SCMSourceOwner.class);
-        given(source.getOwner()).willReturn(owner);
-
-        SCM scm = mock(SCM.class);
-        given(source.build(head, currRevision)).willReturn(scm);
-
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
-        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+        try (MockedStatic<SCMFileSystem> mockedFileSystem = mockStatic(SCMFileSystem.class)) {
+            mockedFileSystem.when(() -> SCMFileSystem.of(source, head, currRevision)).thenReturn(fileSystem);
 
             // when
             boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
@@ -199,16 +181,10 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> expressions = Sets.newHashSet();
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, patterns, expressions);
 
-        SCMSourceOwner owner = mock(SCMSourceOwner.class);
-        given(source.getOwner()).willReturn(owner);
-
-        SCM scm = mock(SCM.class);
-        given(source.build(head, currRevision)).willReturn(scm);
-
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
-        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+        try (MockedStatic<SCMFileSystem> mockedFileSystem = mockStatic(SCMFileSystem.class)) {
+            mockedFileSystem.when(() -> SCMFileSystem.of(source, head, currRevision)).thenReturn(fileSystem);
 
             // when
             boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
@@ -226,16 +202,10 @@ class AbstractBranchBuildStrategyExtensionTest {
         Set<String> paths = Sets.newHashSet("src/main/java/com/a/a.java", "src/main/java/com/a/b.java", "README.md");
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, includedRegions, paths);
 
-        SCMSourceOwner owner = mock(SCMSourceOwner.class);
-        given(source.getOwner()).willReturn(owner);
-
-        SCM scm = mock(SCM.class);
-        given(source.build(head, currRevision)).willReturn(scm);
-
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
-        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+        try (MockedStatic<SCMFileSystem> mockedFileSystem = mockStatic(SCMFileSystem.class)) {
+            mockedFileSystem.when(() -> SCMFileSystem.of(source, head, currRevision)).thenReturn(fileSystem);
 
             // when
             buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
@@ -248,28 +218,23 @@ class AbstractBranchBuildStrategyExtensionTest {
     @Test
     void should_return_FALSE_when_patternsPresentAndStrategyExcludedAndLastBuiltRevisionNull() {
         // given
-        Set<String> excludedRegions = Sets.newHashSet("*.md");
+        Set<String> patterns = Sets.newHashSet("*.md");
         Set<String> paths = Sets.newHashSet("README.md");
-        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludedRegions, paths);
-
-        SCM scm = mock(SCM.class);
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, patterns, paths);
 
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
-        SCMSourceOwner owner = mock(SCMSourceOwner.class);
-        given(source.getOwner()).willReturn(owner);
-
         SCMRevision lastBuiltRevisionNull = null;
-        ChangeRequestSCMRevision<?> currRevision = mock(ChangeRequestSCMRevision.class);
+        ChangeRequestSCMRevision<?> prRevision = mock(ChangeRequestSCMRevision.class);
 
-        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+        try (MockedStatic<SCMFileSystem> mockedFileSystem = mockStatic(SCMFileSystem.class)) {
+            mockedFileSystem.when(() -> SCMFileSystem.of(source, head, prRevision)).thenReturn(fileSystem);
 
             // when
-            buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevisionNull, lastSeenRevision, listener);
+            boolean result = buildStrategy.isAutomaticBuild(source, head, prRevision, lastBuiltRevisionNull, lastSeenRevision, listener);
 
             // then
-            assertFalse(buildStrategy.isShouldRunBuildExecuted);
+            assertFalse(result);
         }
     }
 }
