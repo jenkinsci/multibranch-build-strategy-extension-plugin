@@ -23,7 +23,6 @@
  */
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.buildSCMFileSystem;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getGitChangeSetList;
 
 import java.util.List;
@@ -35,13 +34,11 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitChangeSet;
-import hudson.scm.SCM;
 import jenkins.branch.BranchBuildStrategy;
 import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
-import jenkins.scm.api.SCMSourceOwner;
 
 public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
@@ -59,19 +56,8 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
     @Override
     public boolean isAutomaticBuild(@NonNull SCMSource source, @NonNull SCMHead head, @NonNull SCMRevision currRevision, SCMRevision lastBuiltRevision, SCMRevision lastSeenRevision, @NonNull TaskListener listener) {
-        try {
-            // verify source owner
-            final SCMSourceOwner owner = source.getOwner();
-            if (owner == null) {
-                LOGGER.severe("Error verify SCM source owner");
-                return true;
-            }
-
-            // build SCM object
-            final SCM scm = source.build(head, currRevision);
-
-            // build SCM file system
-            final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner);
+        // build SCM file system
+        try (SCMFileSystem fileSystem = SCMFileSystem.of(source, head, currRevision)) {
             if (fileSystem == null) {
                 LOGGER.severe("Error build SCM file system");
                 return true;
@@ -86,7 +72,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             }
 
             // collect all changes from previous build
-            final List<GitChangeSet> changeSets = getGitChangeSetList(fileSystem, head, lastBuiltRevision);
+            final List<GitChangeSet> changeSets = getGitChangeSetList(fileSystem, lastBuiltRevision);
 
             // get expressions to check matching to pattern
             final Set<String> expressions = getExpressions(changeSets);
