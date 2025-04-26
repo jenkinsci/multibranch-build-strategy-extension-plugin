@@ -37,41 +37,32 @@ import org.apache.commons.lang.StringUtils;
 
 import hudson.plugins.git.GitChangeLogParser;
 import hudson.plugins.git.GitChangeSet;
-import hudson.scm.SCM;
-import jenkins.plugins.git.AbstractGitSCMSource;
-import jenkins.plugins.git.GitSCMFileSystem;
+import jenkins.plugins.git.AbstractGitSCMSource.SCMRevisionImpl;
 import jenkins.scm.api.SCMFile;
 import jenkins.scm.api.SCMFileSystem;
-import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMRevision;
-import jenkins.scm.api.SCMSource;
-import jenkins.scm.api.SCMSourceOwner;
+import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
 
 final class BranchBuildStrategyHelper {
 
     private static final Logger LOGGER = Logger.getLogger(BranchBuildStrategyHelper.class.getName());
 
-    private static final int HASH_LENGTH = 40;
-
     private BranchBuildStrategyHelper() {
     }
 
-    static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner) throws IOException, InterruptedException {
-        SCMFileSystem.Builder builder = new GitSCMFileSystem.BuilderImpl();
-        if (currRevision != null && !(currRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            return builder.build(source, head, new AbstractGitSCMSource.SCMRevisionImpl(head, currRevision.toString().substring(0, 40)));
-        } else {
-            return builder.build(owner, scm, currRevision);
+    static List<GitChangeSet> getGitChangeSetList(SCMFileSystem fileSystem, SCMRevision revision) throws IOException, InterruptedException {
+        /*
+         * convert pull request revision into a specific target revision.
+         * Revision could be a reference or name, the fileSystem has been build
+         * from SCMSource that means it's able to manage the revision the source
+         * have produced
+         */
+        if (revision instanceof ChangeRequestSCMRevision<?> prRev
+                && prRev.getTarget() instanceof SCMRevisionImpl targetRev) {
+            revision = targetRev;
         }
-    }
-
-    static List<GitChangeSet> getGitChangeSetList(SCMFileSystem fileSystem, SCMHead head, SCMRevision revision) throws IOException, InterruptedException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        if (revision != null && !(revision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            fileSystem.changesSince(new AbstractGitSCMSource.SCMRevisionImpl(head, revision.toString().substring(0, HASH_LENGTH)), out);
-        } else {
-            fileSystem.changesSince(revision, out);
-        }
+        fileSystem.changesSince(revision, out);
         GitChangeLogParser parser = new GitChangeLogParser(null, false);
         return parser.parse(new ByteArrayInputStream(out.toByteArray()));
     }
