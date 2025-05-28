@@ -268,10 +268,10 @@ public class AbstractBranchBuildStrategyExtensionTest {
         given(((ChangeRequestSCMRevision) currRevision).getTarget()).willReturn(mockRevision);
 
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevisionCR, scm, owner)).thenReturn(fileSystem);
+            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
 
             // when
-            buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevisionNull, lastSeenRevision, listener);
+            buildStrategy.isAutomaticBuild(source, head, currRevisionCR, lastBuiltRevisionNull, lastSeenRevision, listener);
 
             // then
             assertFalse(buildStrategy.isShouldRunBuildExecuted);
