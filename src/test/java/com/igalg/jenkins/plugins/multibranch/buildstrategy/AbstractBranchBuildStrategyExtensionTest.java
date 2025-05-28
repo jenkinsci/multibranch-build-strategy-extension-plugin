@@ -274,7 +274,6 @@ public class AbstractBranchBuildStrategyExtensionTest {
             buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevisionNull, lastSeenRevision, listener);
 
             // then
-            assertFalse(result);
             assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }
