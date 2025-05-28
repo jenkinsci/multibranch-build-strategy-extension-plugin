@@ -263,9 +263,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
         given(source.getOwner()).willReturn(owner);
 
         SCMRevision lastBuiltRevisionNull = null;
-        SCMRevision mockRevision = mock(SCMRevision.class);
         ChangeRequestSCMRevision currRevision = mock(ChangeRequestSCMRevision.class);
-        given(((ChangeRequestSCMRevision) currRevision).getTarget()).willReturn(mockRevision);
 
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
