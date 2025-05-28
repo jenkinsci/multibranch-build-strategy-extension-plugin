@@ -244,4 +244,36 @@ public class AbstractBranchBuildStrategyExtensionTest {
             assertTrue(buildStrategy.isShouldRunBuildExecuted);
         }
     }
+
+    @Test
+    public void should_return_FALSE_when_patternsPresentAndStrategyExcludedAndlastBuiltRevisionNull() {
+        // given
+        Set<String> excludedRegions = Sets.newHashSet("*.md");
+        Set<String> paths = Sets.newHashSet("README.md");
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludedRegions, paths);
+        SCMRevision lastBuiltRevision = null;
+
+        SCM scm = mock(SCM.class);
+        given(source.build(head, currRevision)).willReturn(scm);
+
+        GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
+        SCMSourceOwner owner = mock(SCMSourceOwner.class);
+        given(source.getOwner()).willReturn(owner);
+
+        SCMRevision mockRevision = mock(SCMRevision.class);
+        ChangeRequestSCMRevision currRevision = mock(ChangeRequestSCMRevision.class);
+        given(((ChangeRequestSCMRevision) currRevision).getTarget()).willReturn(mockRevision);
+
+        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
+            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+
+            // when
+            buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
+
+            // then
+            assertFalse(result);
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
+        }
+    }
 }
