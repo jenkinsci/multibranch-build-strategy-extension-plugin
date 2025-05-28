@@ -255,7 +255,6 @@ public class AbstractBranchBuildStrategyExtensionTest {
         TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludedRegions, paths);
 
         SCM scm = mock(SCM.class);
-        given(source.build(head, currRevision)).willReturn(scm);
 
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
