@@ -53,6 +53,8 @@ import jenkins.plugins.git.GitSCMSource;
 import jenkins.scm.api.SCMFileSystem;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMSourceOwner;
+import jenkins.scm.api.SCMRevision;
+import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractBranchBuildStrategyExtensionTest {
@@ -242,6 +244,34 @@ public class AbstractBranchBuildStrategyExtensionTest {
 
             // then
             assertTrue(buildStrategy.isShouldRunBuildExecuted);
+        }
+    }
+
+    @Test
+    public void should_return_FALSE_when_patternsPresentAndStrategyExcludedAndlastBuiltRevisionNull() {
+        // given
+        Set<String> excludedRegions = Sets.newHashSet("*.md");
+        Set<String> paths = Sets.newHashSet("README.md");
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(EXCLUDED, excludedRegions, paths);
+
+        SCM scm = mock(SCM.class);
+
+        GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
+        SCMSourceOwner owner = mock(SCMSourceOwner.class);
+        given(source.getOwner()).willReturn(owner);
+
+        SCMRevision lastBuiltRevisionNull = null;
+        ChangeRequestSCMRevision currRevision = mock(ChangeRequestSCMRevision.class);
+
+        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
+            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+
+            // when
+            buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevisionNull, lastSeenRevision, listener);
+
+            // then
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }
 }
