@@ -1,20 +1,20 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import jenkins.scm.api.SCMFileSystem;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ExcludeRegionByFileBranchBuildStrategyTest {
+@ExtendWith(MockitoExtension.class)
+class ExcludeRegionByFileBranchBuildStrategyTest {
 
     private static final String FILE_PATH = "my_file";
 
@@ -27,7 +27,7 @@ public class ExcludeRegionByFileBranchBuildStrategyTest {
     private Set<String> expectedPatterns;
 
     @Test
-    public void should_retrievePatternFromFile() {
+    void should_retrievePatternFromFile() {
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             // given
             mockedHelper.when(() -> BranchBuildStrategyHelper.getPatternsFromFile(fileSystem, FILE_PATH)).thenReturn(expectedPatterns);

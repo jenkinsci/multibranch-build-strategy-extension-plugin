@@ -1,23 +1,28 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import jenkins.branch.BranchBuildStrategy;
+import jenkins.plugins.git.junit.jupiter.WithGitSampleRepo;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ExcludeMessageBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest {
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+@WithJenkins
+@WithGitSampleRepo
+class ExcludeMessageBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest {
 
     protected static final String EXCLUDED_MESSAGES = ".*\\[ci\\-skip\\].*\n.*\\[maven\\-release\\-plugin\\].*";
 
     @Override
-    BranchBuildStrategy getBuildStrategy() {
+    protected BranchBuildStrategy getBuildStrategy() {
         return new ExcludeMessageBranchBuildStrategy(EXCLUDED_MESSAGES);
     }
 
     @Test
-    public void should_notTriggerBuild_when_messageMatchExcludedMessages() throws Exception {
+    void should_notTriggerBuild_when_messageMatchExcludedMessages() throws Exception {
         // given
         sampleGitRepo.write("exampleFile", "Example file content");
         sampleGitRepo.git("add", "exampleFile");
@@ -33,7 +38,7 @@ public class ExcludeMessageBranchBuildStrategyIntegrationTest extends BaseBuildS
     }
 
     @Test
-    public void should_triggerBuild_when_messageDoesNotMatchExcludedMessages() throws Exception {
+    void should_triggerBuild_when_messageDoesNotMatchExcludedMessages() throws Exception {
         // given
         sampleGitRepo.write("exampleFile", "Example file content");
         sampleGitRepo.git("add", "exampleFile");

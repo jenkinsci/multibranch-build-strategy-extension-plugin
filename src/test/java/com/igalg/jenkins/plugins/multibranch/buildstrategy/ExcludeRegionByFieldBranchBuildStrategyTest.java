@@ -1,28 +1,26 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.then;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import jenkins.scm.api.SCMFileSystem;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ExcludeRegionByFieldBranchBuildStrategyTest {
+@ExtendWith(MockitoExtension.class)
+class ExcludeRegionByFieldBranchBuildStrategyTest {
 
     @Mock
     private SCMFileSystem fileSystem;
 
     @Test
-    public void should_return_setOfPatternsFromExcludedRegionText() {
+    void should_return_setOfPatternsFromExcludedRegionText() {
         // given
         String line1 = "/path/foo/bar";
         String line2 = ""; // empty
@@ -40,7 +38,7 @@ public class ExcludeRegionByFieldBranchBuildStrategyTest {
     }
 
     @Test
-    public void should_return_true_when_atLeastOnePathDoesNotMatchPattern() {
+    void should_return_true_when_atLeastOnePathDoesNotMatchPattern() {
         // given
         Set<String> patterns = new HashSet<>();
         patterns.add("/foo/**");
@@ -59,7 +57,7 @@ public class ExcludeRegionByFieldBranchBuildStrategyTest {
     }
 
     @Test
-    public void should_return_false_when_AllPathsMatchPattern() {
+    void should_return_false_when_AllPathsMatchPattern() {
         // given
         Set<String> patterns = new HashSet<>();
         patterns.add("/foo/**");

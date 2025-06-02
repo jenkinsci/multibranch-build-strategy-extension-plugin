@@ -3,9 +3,10 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import java.io.IOException;
 import java.util.Collections;
 
+import jenkins.plugins.git.junit.jupiter.WithGitSampleRepo;
 import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+
 import org.jvnet.hudson.test.JenkinsRule;
 
 import jenkins.branch.BranchBuildStrategy;
@@ -15,19 +16,23 @@ import jenkins.branch.DefaultBranchPropertyStrategy;
 import jenkins.plugins.git.GitSCMSource;
 import jenkins.plugins.git.GitSampleRepoRule;
 import jenkins.plugins.git.traits.BranchDiscoveryTrait;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
+@WithJenkins
+@WithGitSampleRepo
 abstract class BaseBuildStrategyIntegrationTest {
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    protected JenkinsRule jenkins;
 
-    @Rule
-    public GitSampleRepoRule sampleGitRepo = new GitSampleRepoRule();
+    protected GitSampleRepoRule sampleGitRepo;
 
     protected WorkflowMultiBranchProject project;
 
-    @Before
-    public void before() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule, GitSampleRepoRule repo) throws Exception {
+        jenkins = rule;
+        sampleGitRepo = repo;
+
         givenRepoInitialised();
         project = givenMultiBranchProjectCreated();
     }
@@ -59,5 +64,5 @@ abstract class BaseBuildStrategyIntegrationTest {
         return project;
     }
 
-    abstract BranchBuildStrategy getBuildStrategy();
+    protected abstract BranchBuildStrategy getBuildStrategy();
 }

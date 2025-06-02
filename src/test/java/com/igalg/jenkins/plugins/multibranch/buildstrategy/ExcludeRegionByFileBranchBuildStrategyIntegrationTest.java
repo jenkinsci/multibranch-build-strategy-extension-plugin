@@ -1,11 +1,15 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import jenkins.branch.BranchBuildStrategy;
+import jenkins.plugins.git.junit.jupiter.WithGitSampleRepo;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class ExcludeRegionByFileBranchBuildStrategyIntegrationTest extends ExcludeRegionBaseBranchBuildStrategyIntegrationTest {
+@WithJenkins
+@WithGitSampleRepo
+class ExcludeRegionByFileBranchBuildStrategyIntegrationTest extends ExcludeRegionBaseBranchBuildStrategyIntegrationTest {
 
     @Override
-    BranchBuildStrategy getBuildStrategy() {
+    protected BranchBuildStrategy getBuildStrategy() {
         return new ExcludeRegionByFileBranchBuildStrategy(".jenkinsExcludeFile");
     }
 
