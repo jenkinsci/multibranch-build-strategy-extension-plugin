@@ -1,8 +1,6 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,16 +8,17 @@ import java.util.Iterator;
 import java.util.Set;
 
 import jenkins.scm.api.SCMFileSystem;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public class ExcludeMessageBranchBuildStrategyTest {
+class ExcludeMessageBranchBuildStrategyTest {
 
     @Mock
     private SCMFileSystem fileSystem;
 
     @Test
-    public void should_return_setOfPatternsFromExcludedMessagesText() {
+    void should_return_setOfPatternsFromExcludedMessagesText() {
         // given
         String line1 = ".*\\[ci\\-skip\\].*";
         String line2 = ".*\\[maven\\-release\\-plugin\\].*";
@@ -38,7 +37,7 @@ public class ExcludeMessageBranchBuildStrategyTest {
     }
 
     @Test
-    public void should_return_TRUE_when_messageDoesNotMatchPattern() {
+    void should_return_TRUE_when_messageDoesNotMatchPattern() {
         // given
         Set<String> patterns = new HashSet<>();
         patterns.add(".*\\[ci\\-skip\\].*");
@@ -55,7 +54,7 @@ public class ExcludeMessageBranchBuildStrategyTest {
     }
 
     @Test
-    public void should_return_FALSE_when_messageMatchAtLeastOnePattern() {
+    void should_return_FALSE_when_messageMatchAtLeastOnePattern() {
         // given
         Set<String> patterns = new HashSet<>();
         patterns.add(".*\\[ci\\-skip\\].*");

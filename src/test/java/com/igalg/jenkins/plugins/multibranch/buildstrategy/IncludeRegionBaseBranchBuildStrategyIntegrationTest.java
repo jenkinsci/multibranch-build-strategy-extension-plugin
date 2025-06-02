@@ -1,17 +1,22 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import jenkins.plugins.git.junit.jupiter.WithGitSampleRepo;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.Test;
 
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+@WithJenkins
+@WithGitSampleRepo
 abstract class IncludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseBuildStrategyIntegrationTest {
 
     protected static final String INCLUDED_REGIONS = "foo/**";
 
     @Test
-    public void should_NotTriggerBuild_when_fileDoesNotMatchIncludeRegion() throws Exception {
+    void should_NotTriggerBuild_when_fileDoesNotMatchIncludeRegion() throws Exception {
         // given a new file not in included region
         sampleGitRepo.write("bar/file", "some content");
         sampleGitRepo.git("add", "bar/file");
@@ -27,7 +32,7 @@ abstract class IncludeRegionBaseBranchBuildStrategyIntegrationTest extends BaseB
     }
 
     @Test
-    public void should_triggerBuild_when_fileDoesMatchIncludeRegion() throws Exception {
+    void should_triggerBuild_when_fileDoesMatchIncludeRegion() throws Exception {
         // given a new file in included region
         sampleGitRepo.write("foo/file", "some content");
         sampleGitRepo.git("add", "foo/file");

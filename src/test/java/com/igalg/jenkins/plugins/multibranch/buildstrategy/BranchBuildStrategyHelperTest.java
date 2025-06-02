@@ -2,8 +2,8 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getPatternsFromFile;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.toPatterns;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -11,16 +11,16 @@ import static org.mockito.Mockito.never;
 import java.io.IOException;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import jenkins.scm.api.SCMFile;
 import jenkins.scm.api.SCMFileSystem;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class BranchBuildStrategyHelperTest {
+@ExtendWith(MockitoExtension.class)
+class BranchBuildStrategyHelperTest {
 
     @Mock
     private SCMFileSystem fileSystem;
@@ -32,7 +32,7 @@ public class BranchBuildStrategyHelperTest {
     private SCMFile child;
 
     @Test
-    public void should_return_setOfPatternsFromFile() throws IOException, InterruptedException {
+    void should_return_setOfPatternsFromFile() throws IOException, InterruptedException {
         // given
         String filePath = "my_file";
 
@@ -51,7 +51,7 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_return_empty_when_fileDoesNotExist() throws IOException, InterruptedException {
+    void should_return_empty_when_fileDoesNotExist() throws IOException, InterruptedException {
         // given
         String filePath= "my_file";
 
@@ -68,7 +68,7 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_return_empty_when_fileNotAFile() throws IOException, InterruptedException {
+    void should_return_empty_when_fileNotAFile() throws IOException, InterruptedException {
         // given
         String filePath = "my_file";
 
@@ -86,7 +86,7 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_return_empty_when_ExceptionOccurred() throws IOException, InterruptedException {
+    void should_return_empty_when_ExceptionOccurred() throws IOException, InterruptedException {
         // given
         String filePath = "my_file";
 
@@ -104,7 +104,7 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_returnEmpty_when_valueIsNull() {
+    void should_returnEmpty_when_valueIsNull() {
         // when
         Set<String> patterns = toPatterns(null);
 
@@ -113,7 +113,7 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_returnEmpty_when_valueIsEmpty() {
+    void should_returnEmpty_when_valueIsEmpty() {
         // when
         Set<String> patterns = toPatterns("");
 
@@ -122,16 +122,18 @@ public class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    public void should_returnCleanedUpPatterns() {
+    void should_returnCleanedUpPatterns() {
         // given
-        String value = "# some comments" +
-                "\n" +
-                "" + // empty line
-                "\n" +
-                "path/foo/**" +
-                "\n" +
-                "/path/bar/**" +
-                "\n";
+        String value = """
+            # some comments\
+            
+            \
+            
+            path/foo/**\
+            
+            /path/bar/**\
+            
+            """;
 
         // when
         Set<String> patterns = toPatterns(value);

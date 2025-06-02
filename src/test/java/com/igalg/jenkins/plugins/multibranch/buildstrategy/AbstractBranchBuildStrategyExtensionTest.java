@@ -26,22 +26,19 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.AbstractBranchBuildStrategy.Strategy.EXCLUDED;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.AbstractBranchBuildStrategy.Strategy.INCLUDED;
 import static jenkins.plugins.git.AbstractGitSCMSource.SCMRevisionImpl;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Sets;
 
@@ -55,9 +52,10 @@ import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMSourceOwner;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.mixin.ChangeRequestSCMRevision;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-public class AbstractBranchBuildStrategyExtensionTest {
+@ExtendWith(MockitoExtension.class)
+class AbstractBranchBuildStrategyExtensionTest {
 
     static class TestBranchBuildStrategy extends AbstractBranchBuildStrategy {
 
@@ -109,7 +107,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     protected TaskListener listener;
 
     @Test
-    public void should_return_TRUE_when_exceptionOccurred() {
+    void should_return_TRUE_when_exceptionOccurred() {
         // given
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
@@ -126,7 +124,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_return_TRUE_when_failsToGetOwner() {
+    void should_return_TRUE_when_failsToGetOwner() {
         // given
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
@@ -143,7 +141,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_return_TRUE_when_failsToGetFileSystem() {
+    void should_return_TRUE_when_failsToGetFileSystem() {
         // given
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
@@ -168,7 +166,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_return_TRUE_when_patternsEmptyAndStrategyExcluded() {
+    void should_return_TRUE_when_patternsEmptyAndStrategyExcluded() {
         // given
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
@@ -195,7 +193,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_return_FALSE_when_patternsEmptyAndStrategyIncluded() {
+    void should_return_FALSE_when_patternsEmptyAndStrategyIncluded() {
         // given
         Set<String> patterns = Sets.newHashSet();
         Set<String> expressions = Sets.newHashSet();
@@ -222,7 +220,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_checkExpressionsAgainstPatterns() {
+    void should_checkExpressionsAgainstPatterns() {
         // given
         Set<String> includedRegions = Sets.newHashSet("**/*.java", "src/main/resource/**/*.*");
         Set<String> paths = Sets.newHashSet("src/main/java/com/a/a.java", "src/main/java/com/a/b.java", "README.md");
@@ -248,7 +246,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
     }
 
     @Test
-    public void should_return_FALSE_when_patternsPresentAndStrategyExcludedAndlastBuiltRevisionNull() {
+    void should_return_FALSE_when_patternsPresentAndStrategyExcludedAndLastBuiltRevisionNull() {
         // given
         Set<String> excludedRegions = Sets.newHashSet("*.md");
         Set<String> paths = Sets.newHashSet("README.md");
@@ -262,7 +260,7 @@ public class AbstractBranchBuildStrategyExtensionTest {
         given(source.getOwner()).willReturn(owner);
 
         SCMRevision lastBuiltRevisionNull = null;
-        ChangeRequestSCMRevision currRevision = mock(ChangeRequestSCMRevision.class);
+        ChangeRequestSCMRevision<?> currRevision = mock(ChangeRequestSCMRevision.class);
 
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);

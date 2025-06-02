@@ -1,11 +1,15 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import jenkins.branch.BranchBuildStrategy;
+import jenkins.plugins.git.junit.jupiter.WithGitSampleRepo;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class IncludeRegionByFieldBranchBuildStrategyIntegrationTest extends IncludeRegionBaseBranchBuildStrategyIntegrationTest {
+@WithJenkins
+@WithGitSampleRepo
+class IncludeRegionByFieldBranchBuildStrategyIntegrationTest extends IncludeRegionBaseBranchBuildStrategyIntegrationTest {
 
     @Override
-    BranchBuildStrategy getBuildStrategy() {
+    protected BranchBuildStrategy getBuildStrategy() {
         return new IncludeRegionByFieldBranchBuildStrategy(INCLUDED_REGIONS);
     }
 }
