@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.google.common.annotations.VisibleForTesting;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -72,11 +73,14 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // Determine if this is a change request (PR) or a regular branch
             final boolean isChangeRequest = currRevision instanceof ChangeRequestSCMRevision;
 
+            // resolve optional per-project credential override (for Git fetches during branch scan)
+            final String credentialsIdOverride = resolveCredentialsOverride(owner);
+
             // build SCM object
             final SCM scm = source.build(head, currRevision);
 
             // build SCM file system
-            final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner);
+            final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner, credentialsIdOverride);
             if (fileSystem == null) {
                 LOGGER.severe("Error build SCM file system");
                 return true;
@@ -125,4 +129,21 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
     @VisibleForTesting
     abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions, boolean isChangeRequest);
+
+    /**
+     * Resolve the credential override for the multibranch project owning this SCM source.
+     * Walks parent folders so the property can be set on an enclosing folder too.
+     */
+    private static String resolveCredentialsOverride(SCMSourceOwner owner) {
+        Object cursor = owner;
+        while (cursor instanceof AbstractFolder) {
+            AbstractFolder<?> folder = (AbstractFolder<?>) cursor;
+            BuildStrategyCredentialsProperty prop = folder.getProperties().get(BuildStrategyCredentialsProperty.class);
+            if (prop != null && prop.getCredentialsId() != null && !prop.getCredentialsId().isEmpty()) {
+                return prop.getCredentialsId();
+            }
+            cursor = folder.getParent();
+        }
+        return null;
+    }
 }

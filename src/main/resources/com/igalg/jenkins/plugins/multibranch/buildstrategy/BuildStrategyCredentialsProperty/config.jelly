@@ -1,0 +1,7 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+    <f:entry title="Git credential (override)" field="credentialsId"
+             description="Used by the multibranch build strategy extension plugin when it runs Git fetch/log during branch scan. Overrides the SCM source credential so you can keep a REST-only API token on the SCM source while using a Git-protocol-compatible credential here.">
+        <c:select/>
+    </f:entry>
+</j:jelly>

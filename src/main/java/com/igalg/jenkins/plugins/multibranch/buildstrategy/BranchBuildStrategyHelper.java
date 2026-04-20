@@ -26,6 +26,7 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import hudson.plugins.git.GitChangeLogParser;
 import hudson.plugins.git.GitChangeSet;
+import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.UserRemoteConfig;
+import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.scm.SCM;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.plugins.git.GitSCMFileSystem;
@@ -56,13 +60,56 @@ final class BranchBuildStrategyHelper {
     private BranchBuildStrategyHelper() {
     }
 
+    /**
+     * Backwards-compatible overload: no credential override.
+     * Retained for existing test mocks of this helper.
+     */
     static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner) throws IOException, InterruptedException {
+        return buildSCMFileSystem(source, head, currRevision, scm, owner, null);
+    }
+
+    static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner, String credentialsIdOverride) throws IOException, InterruptedException {
         SCMFileSystem.Builder builder = new GitSCMFileSystem.BuilderImpl();
+
+        // Normalize the revision — the builder's (Item, SCM, SCMRevision) overload expects SCMRevisionImpl.
+        SCMRevision effectiveRevision = currRevision;
         if (currRevision != null && !(currRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            return builder.build(source, head, new AbstractGitSCMSource.SCMRevisionImpl(head, currRevision.toString().substring(0, 40)));
+            effectiveRevision = new AbstractGitSCMSource.SCMRevisionImpl(head, currRevision.toString().substring(0, HASH_LENGTH));
+        }
+
+        // When an override is set we must use the (owner, scm, revision) path — the (source, head, revision)
+        // overload resolves credentials from the SCMSource directly, bypassing any override. Rewrite the
+        // GitSCM's UserRemoteConfigs so the builder picks up the override credential.
+        if (StringUtils.isNotBlank(credentialsIdOverride)) {
+            SCM overriddenScm = rewriteCredentials(scm, credentialsIdOverride);
+            return builder.build(owner, overriddenScm, effectiveRevision);
+        }
+
+        // Preserve legacy behavior when no override is set.
+        if (currRevision != null && !(currRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
+            return builder.build(source, head, effectiveRevision);
         } else {
             return builder.build(owner, scm, currRevision);
         }
+    }
+
+    /**
+     * Return a copy of {@code scm} with every {@link UserRemoteConfig}'s credentialsId replaced by
+     * {@code credentialsIdOverride}. If {@code scm} is not a {@link GitSCM}, returns it unchanged.
+     */
+    private static SCM rewriteCredentials(SCM scm, String credentialsIdOverride) {
+        if (!(scm instanceof GitSCM)) {
+            return scm;
+        }
+        GitSCM gitSCM = (GitSCM) scm;
+        List<UserRemoteConfig> newConfigs = gitSCM.getUserRemoteConfigs().stream()
+                .map(rc -> new UserRemoteConfig(rc.getUrl(), rc.getName(), rc.getRefspec(), credentialsIdOverride))
+                .collect(Collectors.toList());
+        List<GitSCMExtension> extensions = new ArrayList<>();
+        for (GitSCMExtension ext : gitSCM.getExtensions()) {
+            extensions.add(ext);
+        }
+        return new GitSCM(newConfigs, gitSCM.getBranches(), gitSCM.getBrowser(), gitSCM.getGitTool(), extensions);
     }
 
     static List<GitChangeSet> getGitChangeSetList(SCMFileSystem fileSystem, SCMHead head, SCMRevision revision) throws IOException, InterruptedException {
