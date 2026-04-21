@@ -42,6 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 /**
  * Project-scoped override for the credential used by branch build strategies
@@ -75,6 +76,7 @@ public class BuildStrategyCredentialsProperty extends AbstractFolderProperty<Abs
             return "Build strategy Git credential override";
         }
 
+        @POST
         @SuppressWarnings("unused") // called by Jelly <c:select/>
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item context,
                                                      @QueryParameter String credentialsId) {
@@ -93,6 +95,7 @@ public class BuildStrategyCredentialsProperty extends AbstractFolderProperty<Abs
                     .includeCurrentValue(credentialsId);
         }
 
+        @POST
         @SuppressWarnings("unused") // called by Jelly form validation
         public FormValidation doCheckCredentialsId(@AncestorInPath Item context,
                                                    @QueryParameter String value) {
