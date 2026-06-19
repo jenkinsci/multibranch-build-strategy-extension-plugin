@@ -29,6 +29,7 @@ import jenkins.branch.BranchBuildStrategyDescriptor;
 import jenkins.scm.api.SCMFileSystem;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 public class ExcludeMessageBranchBuildStrategy extends AbstractMessageBranchBuildStrategy {
 
     private final String excludedMessages;
+    private boolean applyToChangeRequests = true;
+    private boolean applyToBranches = true;
 
     @DataBoundConstructor
     public ExcludeMessageBranchBuildStrategy(String excludedMessages) {
@@ -48,12 +51,44 @@ public class ExcludeMessageBranchBuildStrategy extends AbstractMessageBranchBuil
         return excludedMessages;
     }
 
+    public boolean isApplyToChangeRequests() {
+        return applyToChangeRequests;
+    }
+
+    @DataBoundSetter
+    public void setApplyToChangeRequests(boolean applyToChangeRequests) {
+        this.applyToChangeRequests = applyToChangeRequests;
+    }
+
+    public boolean isApplyToBranches() {
+        return applyToBranches;
+    }
+
+    @DataBoundSetter
+    public void setApplyToBranches(boolean applyToBranches) {
+        this.applyToBranches = applyToBranches;
+    }
+
     @Override
     Set<String> getPatterns(SCMFileSystem ignored) {
         return Arrays.stream(excludedMessages.split("\n"))
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    boolean shouldRunBuild(Set<String> patterns, Set<String> singletonMessages, boolean isChangeRequest) {
+        // Check if this strategy should apply based on the build type
+        if (isChangeRequest && !applyToChangeRequests) {
+            return true; // Don't block the build for change requests if not configured to do so
+        }
+        if (!isChangeRequest && !applyToBranches) {
+            return true; // Don't block the build for branches if not configured to do so
+        }
+        
+        // Apply the parent logic if this strategy is configured for this build type
+        return super.shouldRunBuild(patterns, singletonMessages, isChangeRequest);
     }
 
     @Extension

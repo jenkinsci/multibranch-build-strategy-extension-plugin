@@ -82,7 +82,7 @@ class AbstractBranchBuildStrategyExtensionTest {
         }
 
         @Override
-        boolean shouldRunBuild(Set<String> patterns, Set<String> expressions) {
+        boolean shouldRunBuild(Set<String> patterns, Set<String> expressions, boolean isChangeRequest) {
             isShouldRunBuildExecuted = true;
             return false;
         }

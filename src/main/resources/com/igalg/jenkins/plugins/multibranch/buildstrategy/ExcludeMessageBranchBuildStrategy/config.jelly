@@ -3,4 +3,10 @@
     <f:entry title="Don't trigger build for excluded commit messages" field="excludedMessages">
         <f:textarea/>
     </f:entry>
+    <f:entry title="Apply to change requests (PRs)" field="applyToChangeRequests">
+        <f:checkbox default="true"/>
+    </f:entry>
+    <f:entry title="Apply to branch builds" field="applyToBranches">
+        <f:checkbox default="true"/>
+    </f:entry>
 </j:jelly>

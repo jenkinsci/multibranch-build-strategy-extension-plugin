@@ -42,7 +42,7 @@ abstract class IncludeRegionBranchBuildStrategy extends AbstractRegionBranchBuil
      * @return {@code true} if at least one file matches in the included regions
      */
     @Override
-    boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
+    boolean shouldRunBuild(Set<String> patterns, Set<String> paths, boolean isChangeRequest) {
         for (String path : paths) {
             for (String pattern : patterns) {
                 if (SelectorUtils.matchPath(pattern, path)) {
