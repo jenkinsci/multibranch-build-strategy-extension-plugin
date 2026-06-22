@@ -49,7 +49,7 @@ class IncludeRegionByFieldBranchBuildStrategyTest {
 
         // when
         IncludeRegionBranchBuildStrategy branchBuildStrategy = new IncludeRegionByFieldBranchBuildStrategy("");
-        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths);
+        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths, false);
 
         // then
         assertTrue(result);
@@ -67,7 +67,7 @@ class IncludeRegionByFieldBranchBuildStrategyTest {
 
         // when
         IncludeRegionBranchBuildStrategy branchBuildStrategy = new IncludeRegionByFieldBranchBuildStrategy("");
-        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths);
+        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths, false);
 
         // then
         assertFalse(result);

@@ -50,7 +50,7 @@ class ExcludeRegionByFieldBranchBuildStrategyTest {
 
         // when
         ExcludeRegionBranchBuildStrategy branchBuildStrategy = new ExcludeRegionByFieldBranchBuildStrategy("");
-        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths);
+        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths, false);
 
         // then
         assertTrue(result);
@@ -70,7 +70,7 @@ class ExcludeRegionByFieldBranchBuildStrategyTest {
 
         // when
         ExcludeRegionBranchBuildStrategy branchBuildStrategy = new ExcludeRegionByFieldBranchBuildStrategy("");
-        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths);
+        boolean result = branchBuildStrategy.shouldRunBuild(patterns, paths, false);
 
         // then
         assertFalse(result);

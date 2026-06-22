@@ -42,7 +42,7 @@ abstract class ExcludeRegionBranchBuildStrategy extends AbstractRegionBranchBuil
      * @return {@code true} if at least one file does not match the excluded regions
      */
     @Override
-    boolean shouldRunBuild(Set<String> patterns, Set<String> paths) {
+    boolean shouldRunBuild(Set<String> patterns, Set<String> paths, boolean isChangeRequest) {
         for (String path : paths) {
             boolean isNotMatchingAnyRegion = true;
             for (String pattern : patterns) {

@@ -50,7 +50,7 @@ abstract class AbstractMessageBranchBuildStrategy extends AbstractBranchBuildStr
     }
 
     @Override
-    boolean shouldRunBuild(Set<String> patterns, Set<String> singletonMessages) {
+    boolean shouldRunBuild(Set<String> patterns, Set<String> singletonMessages, boolean isChangeRequest) {
         String message = singletonMessages.iterator().next();
         boolean isNotMatchingAnyPattern = true;
 

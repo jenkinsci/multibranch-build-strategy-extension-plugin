@@ -68,6 +68,9 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
                 return true;
             }
 
+            // Determine if this is a change request (PR) or a regular branch
+            final boolean isChangeRequest = currRevision instanceof ChangeRequestSCMRevision;
+
             // build SCM object
             final SCM scm = source.build(head, currRevision);
 
@@ -87,7 +90,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             }
 
             // If this is the first build of a change request, compare against the target.
-            if (lastBuiltRevision == null && currRevision instanceof ChangeRequestSCMRevision) {
+            if (lastBuiltRevision == null && isChangeRequest) {
                 lastBuiltRevision = ((ChangeRequestSCMRevision) currRevision).getTarget();
             }
 
@@ -97,9 +100,9 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // get expressions to check matching to pattern
             final Set<String> expressions = getExpressions(changeSets);
 
-            LOGGER.fine(() -> String.format("Strategy: %s, patterns: [%s], expressions: [%s]", strategy, String.join(", ", patterns), String.join(", ", expressions)));
+            LOGGER.fine(() -> String.format("Strategy: %s, isChangeRequest: %s, patterns: [%s], expressions: [%s]", strategy, isChangeRequest, String.join(", ", patterns), String.join(", ", expressions)));
 
-            return shouldRunBuild(patterns, expressions);
+            return shouldRunBuild(patterns, expressions, isChangeRequest);
         } catch (final Exception e) {
             LOGGER.severe("Unexpected exception: " + e);
 
@@ -120,5 +123,5 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
     abstract Set<String> getExpressions(List<GitChangeSet> changeSets);
 
     @VisibleForTesting
-    abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions);
+    abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions, boolean isChangeRequest);
 }
