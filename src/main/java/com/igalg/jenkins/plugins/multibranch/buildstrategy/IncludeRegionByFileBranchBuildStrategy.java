@@ -27,7 +27,7 @@ import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStr
 
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
