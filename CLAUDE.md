@@ -59,7 +59,12 @@ BranchBuildStrategy (Jenkins branch-api)
 
 **PR handling:** When `currRevision instanceof ChangeRequestSCMRevision` and there is no prior build (`lastBuiltRevision == null`), the target revision of the PR is used as the base for diff computation.
 
-**Error handling convention:** on any exception, `isAutomaticBuild` returns `true` (allow the build) to avoid silently suppressing builds due to infrastructure failures.
+**Error handling convention:** on any exception, `isAutomaticBuild` returns `true` (allow the build) to avoid silently
+suppressing builds due to infrastructure failures.
+
+**Known exception:** `BranchBuildStrategyHelper.getPatternsFromFile` swallows its own exceptions (and a missing file)
+and returns an empty set. `isAutomaticBuild` treats empty patterns as "no patterns": build for Exclude strategies,
+**skip** for Include strategies. So an unreadable or missing include file suppresses builds.
 
 ## Test structure
 
@@ -70,4 +75,10 @@ BranchBuildStrategy (Jenkins branch-api)
 
 ## UI resources
 
-Each concrete strategy that exposes a `@DataBoundConstructor` has a matching Jelly config view and HTML help files under `src/main/resources/<FullyQualifiedClassName>/`. Changes to configuration fields need corresponding updates in these files.
+Jelly config views and HTML help files live under `src/main/resources/<FullyQualifiedClassName>/`. Changes to
+configuration fields need corresponding updates in these files.
+
+The directory is not always the concrete class's own. `ExcludeMessage...` and the two `*ByFile` strategies have one, but
+the two `*ByField` strategies have none: they use the directories of their package-private abstract parents,
+`ExcludeRegionBranchBuildStrategy/` and `IncludeRegionBranchBuildStrategy/`. Check where a view actually lives before
+adding a directory.
