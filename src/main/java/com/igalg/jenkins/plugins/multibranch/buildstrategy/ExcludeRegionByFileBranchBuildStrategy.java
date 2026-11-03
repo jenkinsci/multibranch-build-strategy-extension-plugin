@@ -25,6 +25,7 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.*;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,7 @@ public class ExcludeRegionByFileBranchBuildStrategy extends ExcludeRegionBranchB
     }
 
     @Override
-    Set<String> getPatterns(SCMFileSystem fileSystem) {
+    Set<String> getPatterns(SCMFileSystem fileSystem) throws IOException, InterruptedException {
         return getPatternsFromFile(fileSystem, excludeFilePath);
     }
 

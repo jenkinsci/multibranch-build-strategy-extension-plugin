@@ -20,7 +20,7 @@ class IncludeRegionByFieldBranchBuildStrategyTest {
     private SCMFileSystem fileSystem;
 
     @Test
-    void should_return_setOfPatternsFromIncludedRegionText() {
+    void should_return_setOfPatternsFromIncludedRegionText() throws Exception {
         // given
         String line1 = "/path/foo/bar";
         String line2 = ""; // empty

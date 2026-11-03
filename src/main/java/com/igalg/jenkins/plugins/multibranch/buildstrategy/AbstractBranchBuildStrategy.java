@@ -26,6 +26,7 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.buildSCMFileSystem;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getGitChangeSetList;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -117,7 +118,7 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
     }
 
     @VisibleForTesting
-    abstract Set<String> getPatterns(SCMFileSystem fileSystem);
+    abstract Set<String> getPatterns(SCMFileSystem fileSystem) throws IOException, InterruptedException;
 
     @VisibleForTesting
     abstract Set<String> getExpressions(List<GitChangeSet> changeSets);
