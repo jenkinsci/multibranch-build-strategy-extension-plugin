@@ -48,9 +48,6 @@ BranchBuildStrategy (Jenkins branch-api)
                                                  configurable separately for PRs and branches
 ```
 
-There is also `ExcludeByIgnoreFileBranchBuildStrategy` which reads ignore patterns from a repo file and uses
-`ExcludeRegionBranchBuildStrategy` logic, but registered as a separate descriptor.
-
 **Key collaborator — `BranchBuildStrategyHelper`:** static utility that:
 - Builds a `GitSCMFileSystem` (handles both regular `SCMRevisionImpl` and PR `ChangeRequestSCMRevision` by truncating the hash to 40 chars).
 - Retrieves the git changelog via `fileSystem.changesSince(...)` and parses it with `GitChangeLogParser`.
