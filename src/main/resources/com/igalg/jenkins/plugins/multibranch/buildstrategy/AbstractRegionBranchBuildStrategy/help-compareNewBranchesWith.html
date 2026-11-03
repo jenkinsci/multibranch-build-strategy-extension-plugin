@@ -1,0 +1,13 @@
+<div>
+    Base branch for branches without a previous build, e.g. <code>master</code>, or <code>@default</code> for the
+    default branch of the repository. Leave empty to keep the default behaviour.<br/>
+    By default such a branch is checked against its whole history, which almost always matches the regions, so a new
+    branch is built even without own commits. When set, only the commits since the merge base with the base branch
+    (including merges into the branch) are checked, as for the next builds. E.g. a new branch changing only excluded
+    documentation is not built; in a monorepository with a job per module, only the changed modules are built.
+    <ul>
+        <li>The base branch itself and change requests (compared with their target) are not affected.</li>
+        <li><code>@default</code> is the default branch found by the last branch indexing.</li>
+        <li>If the base branch, the default branch or the merge base can not be found, the whole history is used.</li>
+    </ul>
+</div>
