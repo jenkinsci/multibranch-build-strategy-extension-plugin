@@ -76,28 +76,24 @@ final class BranchBuildStrategyHelper {
         return parser.parse(new ByteArrayInputStream(out.toByteArray()));
     }
 
-    static Set<String> getPatternsFromFile(SCMFileSystem fileSystem, String filePath) {
-        try {
-            LOGGER.info(() -> String.format("Looking for file: %s", filePath));
+    /**
+     * Reads the patterns from a file at the root of the SCM.
+     * <p>
+     * A missing file (or a path that is not a file) yields an empty set. Any failure while looking up or reading the
+     * file is propagated, so that {@code AbstractBranchBuildStrategy#isAutomaticBuild} can fail open instead of
+     * mistaking an infrastructure error for "no patterns".
+     */
+    static Set<String> getPatternsFromFile(SCMFileSystem fileSystem, String filePath)
+            throws IOException, InterruptedException {
+        LOGGER.info(() -> String.format("Looking for file: %s", filePath));
 
-            final SCMFile ignorefile = fileSystem.getRoot().child(filePath);
-            if (!ignorefile.exists() || !ignorefile.isFile()) {
-                LOGGER.severe(() -> String.format("File: %s not found", filePath));
-                return Collections.emptySet();
-            }
-
-            return toPatterns(ignorefile.contentAsString());
-        } catch (final Exception e) {
-            LOGGER.severe("Unexpected exception: " + e);
-
-            if (e instanceof InterruptedException) {
-                // Clean up whatever needs to be handled before interrupting
-                Thread.currentThread().interrupt();
-            }
-
-            // we don't want to cancel builds on unexpected exception
+        final SCMFile ignorefile = fileSystem.getRoot().child(filePath);
+        if (!ignorefile.exists() || !ignorefile.isFile()) {
+            LOGGER.severe(() -> String.format("File: %s not found", filePath));
             return Collections.emptySet();
         }
+
+        return toPatterns(ignorefile.contentAsString());
     }
 
     static Set<String> toPatterns(String value) {

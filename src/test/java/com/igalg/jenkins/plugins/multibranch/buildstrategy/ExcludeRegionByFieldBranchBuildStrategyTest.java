@@ -20,7 +20,7 @@ class ExcludeRegionByFieldBranchBuildStrategyTest {
     private SCMFileSystem fileSystem;
 
     @Test
-    void should_return_setOfPatternsFromExcludedRegionText() {
+    void should_return_setOfPatternsFromExcludedRegionText() throws Exception {
         // given
         String line1 = "/path/foo/bar";
         String line2 = ""; // empty

@@ -62,9 +62,9 @@ BranchBuildStrategy (Jenkins branch-api)
 **Error handling convention:** on any exception, `isAutomaticBuild` returns `true` (allow the build) to avoid silently
 suppressing builds due to infrastructure failures.
 
-**Known exception:** `BranchBuildStrategyHelper.getPatternsFromFile` swallows its own exceptions (and a missing file)
-and returns an empty set. `isAutomaticBuild` treats empty patterns as "no patterns": build for Exclude strategies,
-**skip** for Include strategies. So an unreadable or missing include file suppresses builds.
+**Missing pattern file:** `BranchBuildStrategyHelper.getPatternsFromFile` returns an empty set when the file is missing
+or not a regular file; read errors propagate and fail open. `isAutomaticBuild` treats empty patterns as "no patterns":
+build for Exclude strategies, **skip** for Include strategies. So a missing include file suppresses builds.
 
 ## Test structure
 

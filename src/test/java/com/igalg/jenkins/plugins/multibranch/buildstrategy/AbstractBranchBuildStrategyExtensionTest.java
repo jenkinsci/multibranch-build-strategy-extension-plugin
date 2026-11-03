@@ -32,6 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -65,6 +66,8 @@ class AbstractBranchBuildStrategyExtensionTest {
 
         boolean isShouldRunBuildExecuted = false;
 
+        IOException getPatternsFailure;
+
         protected TestBranchBuildStrategy(Strategy strategy, Set<String> patterns, Set<String> expressions) {
             super(strategy);
             this.patterns = patterns;
@@ -72,7 +75,10 @@ class AbstractBranchBuildStrategyExtensionTest {
         }
 
         @Override
-        Set<String> getPatterns(SCMFileSystem fileSystem) {
+        Set<String> getPatterns(SCMFileSystem fileSystem) throws IOException {
+            if (getPatternsFailure != null) {
+                throw getPatternsFailure;
+            }
             return patterns;
         }
 
@@ -215,6 +221,32 @@ class AbstractBranchBuildStrategyExtensionTest {
 
             // then
             assertFalse(result);
+            assertFalse(buildStrategy.isShouldRunBuildExecuted);
+        }
+    }
+
+    @Test
+    void should_return_TRUE_when_gettingPatternsFailsAndStrategyIncluded() {
+        // given
+        TestBranchBuildStrategy buildStrategy = new TestBranchBuildStrategy(INCLUDED, Sets.newHashSet(), Sets.newHashSet());
+        buildStrategy.getPatternsFailure = new IOException("cannot read pattern file");
+
+        SCMSourceOwner owner = mock(SCMSourceOwner.class);
+        given(source.getOwner()).willReturn(owner);
+
+        SCM scm = mock(SCM.class);
+        given(source.build(head, currRevision)).willReturn(scm);
+
+        GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
+
+        try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
+            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+
+            // when
+            boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);
+
+            // then
+            assertTrue(result);
             assertFalse(buildStrategy.isShouldRunBuildExecuted);
         }
     }

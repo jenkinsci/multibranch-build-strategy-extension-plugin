@@ -27,7 +27,7 @@ class ExcludeRegionByFileBranchBuildStrategyTest {
     private Set<String> expectedPatterns;
 
     @Test
-    void should_retrievePatternFromFile() {
+    void should_retrievePatternFromFile() throws Exception {
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
             // given
             mockedHelper.when(() -> BranchBuildStrategyHelper.getPatternsFromFile(fileSystem, FILE_PATH)).thenReturn(expectedPatterns);

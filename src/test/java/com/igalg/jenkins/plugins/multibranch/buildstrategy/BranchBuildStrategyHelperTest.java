@@ -3,6 +3,7 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getPatternsFromFile;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.toPatterns;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -86,7 +87,7 @@ class BranchBuildStrategyHelperTest {
     }
 
     @Test
-    void should_return_empty_when_ExceptionOccurred() throws IOException, InterruptedException {
+    void should_propagate_exception_when_fileCannotBeRead() throws IOException, InterruptedException {
         // given
         String filePath = "my_file";
 
@@ -96,11 +97,21 @@ class BranchBuildStrategyHelperTest {
         given(child.isFile()).willReturn(true);
         given(child.contentAsString()).willThrow(IOException.class);
 
-        // when
-        Set<String> patterns = getPatternsFromFile(fileSystem, filePath);
+        // when / then
+        assertThrows(IOException.class, () -> getPatternsFromFile(fileSystem, filePath));
+    }
 
-        // then
-        assertTrue(patterns.isEmpty());
+    @Test
+    void should_propagate_exception_when_fileLookupFails() throws IOException, InterruptedException {
+        // given
+        String filePath = "my_file";
+
+        given(fileSystem.getRoot()).willReturn(root);
+        given(root.child(filePath)).willReturn(child);
+        given(child.exists()).willThrow(IOException.class);
+
+        // when / then
+        assertThrows(IOException.class, () -> getPatternsFromFile(fileSystem, filePath));
     }
 
     @Test
