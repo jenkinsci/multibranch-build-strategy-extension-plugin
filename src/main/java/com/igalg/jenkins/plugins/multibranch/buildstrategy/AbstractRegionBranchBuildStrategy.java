@@ -23,6 +23,10 @@
  */
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
+import org.kohsuke.stapler.DataBoundSetter;
+
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import hudson.Util;
 import hudson.plugins.git.GitChangeSet;
 
 import java.util.Collection;
@@ -31,12 +35,32 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-abstract class AbstractRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
+public abstract class AbstractRegionBranchBuildStrategy extends AbstractBranchBuildStrategy {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractRegionBranchBuildStrategy.class.getName());
 
+    private String compareNewBranchesWith;
+
     protected AbstractRegionBranchBuildStrategy(Strategy strategy) {
         super(strategy);
+    }
+
+    /**
+     * @return name of the branch to compare a branch without previous build against, or {@code null}
+     */
+    @CheckForNull
+    public String getCompareNewBranchesWith() {
+        return compareNewBranchesWith;
+    }
+
+    @DataBoundSetter
+    public void setCompareNewBranchesWith(String compareNewBranchesWith) {
+        this.compareNewBranchesWith = Util.fixEmptyAndTrim(compareNewBranchesWith);
+    }
+
+    @Override
+    String getBaseBranchForNewBranches() {
+        return compareNewBranchesWith;
     }
 
     Set<String> getExpressions(List<GitChangeSet> changeSets) {

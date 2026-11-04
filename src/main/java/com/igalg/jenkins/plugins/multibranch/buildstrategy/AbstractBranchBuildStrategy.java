@@ -24,6 +24,7 @@
 package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.buildSCMFileSystem;
+import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.findMergeBaseRevision;
 import static com.igalg.jenkins.plugins.multibranch.buildstrategy.BranchBuildStrategyHelper.getGitChangeSetList;
 
 import java.io.IOException;
@@ -31,8 +32,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitChangeSet;
@@ -90,9 +94,18 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
                 return build;
             }
 
-            // If this is the first build of a change request, compare against the target.
-            if (lastBuiltRevision == null && isChangeRequest) {
-                lastBuiltRevision = ((ChangeRequestSCMRevision) currRevision).getTarget();
+            if (lastBuiltRevision == null) {
+                if (isChangeRequest) {
+                    // If this is the first build of a change request, compare against the target.
+                    lastBuiltRevision = ((ChangeRequestSCMRevision) currRevision).getTarget();
+                } else {
+                    // If this is the first build of a branch, optionally compare against its merge base with the
+                    // configured base branch instead of the whole branch history.
+                    final String baseBranch = getBaseBranchForNewBranches();
+                    if (StringUtils.isNotBlank(baseBranch)) {
+                        lastBuiltRevision = findMergeBaseRevision(source, head, fileSystem, baseBranch, owner, listener);
+                    }
+                }
             }
 
             // collect all changes from previous build
@@ -115,6 +128,16 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // we don't want to cancel builds on unexpected exception
             return true;
         }
+    }
+
+    /**
+     * Name of the branch to compare a branch without previous build against.
+     *
+     * @return the base branch name, or {@code null} to compare against the whole branch history
+     */
+    @CheckForNull
+    String getBaseBranchForNewBranches() {
+        return null;
     }
 
     @VisibleForTesting

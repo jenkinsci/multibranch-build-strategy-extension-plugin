@@ -3,4 +3,7 @@
     <f:entry title="Trigger builds for included regions from inclusion file" field="includeFilePath">
         <f:textbox default=".jenkinsIncludeFile"/>
     </f:entry>
+    <f:entry title="Compare branches without previous build with branch" field="compareNewBranchesWith">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>

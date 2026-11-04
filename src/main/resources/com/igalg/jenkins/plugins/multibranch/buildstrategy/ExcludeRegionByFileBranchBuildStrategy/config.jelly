@@ -3,4 +3,7 @@
     <f:entry title="Don't trigger build for excluded regions from exclusion file" field="excludeFilePath">
         <f:textbox default=".jenkinsExcludeFile"/>
     </f:entry>
+    <f:entry title="Compare branches without previous build with branch" field="compareNewBranchesWith">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>
