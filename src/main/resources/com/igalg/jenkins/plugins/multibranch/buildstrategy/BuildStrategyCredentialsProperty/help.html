@@ -1,0 +1,9 @@
+<div>
+    Credential used by the multibranch build strategy extension plugin when it runs Git fetch and log during branch
+    scan, instead of the SCM source credential. Use it when the SCM source holds a REST-only API token (for example
+    an Atlassian API scoped token) that cannot authenticate Git operations.
+    <p>
+    Branch discovery keeps using the SCM source credential. The override applies to this project only and is not
+    inherited by projects in sub-folders.
+    </p>
+</div>

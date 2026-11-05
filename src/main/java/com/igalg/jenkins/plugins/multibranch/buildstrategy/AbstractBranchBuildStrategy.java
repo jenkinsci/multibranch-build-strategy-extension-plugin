@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitChangeSet;
@@ -75,8 +76,11 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // build SCM object
             final SCM scm = source.build(head, currRevision);
 
+            // resolve optional per-project credential override (for Git fetches during branch scan)
+            final String credentialsIdOverride = resolveCredentialsOverride(owner, scm);
+
             // build SCM file system
-            final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner);
+            final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner, credentialsIdOverride);
             if (fileSystem == null) {
                 LOGGER.severe("Error build SCM file system");
                 return true;
@@ -125,4 +129,23 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
 
     @VisibleForTesting
     abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions, boolean isChangeRequest);
+
+    /**
+     * Resolve the credential override configured on the multibranch project that owns the SCM source.
+     * Enclosing folders are not consulted, and the override is only used when every remote of {@code scm}
+     * is on one of the hosts the override was configured for.
+     */
+    @CheckForNull
+    static String resolveCredentialsOverride(SCMSourceOwner owner, SCM scm) {
+        final BuildStrategyCredentialsProperty property = BuildStrategyCredentialsProperty.forOwner(owner);
+        if (property == null) {
+            return null;
+        }
+        if (!property.appliesTo(scm)) {
+            LOGGER.warning(() -> String.format("Credential override on %s is restricted to host(s) %s, but an SCM "
+                    + "remote is elsewhere; using the SCM source credential", owner.getFullName(), property.getHosts()));
+            return null;
+        }
+        return property.getCredentialsId();
+    }
 }
