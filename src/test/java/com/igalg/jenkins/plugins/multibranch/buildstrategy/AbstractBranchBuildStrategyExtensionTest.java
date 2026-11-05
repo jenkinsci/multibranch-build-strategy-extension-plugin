@@ -240,7 +240,7 @@ class AbstractBranchBuildStrategyExtensionTest {
         GitSCMFileSystem fileSystem = mock(GitSCMFileSystem.class);
 
         try (MockedStatic<BranchBuildStrategyHelper> mockedHelper = mockStatic(BranchBuildStrategyHelper.class)) {
-            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner)).thenReturn(fileSystem);
+            mockedHelper.when(() -> BranchBuildStrategyHelper.buildSCMFileSystem(source, head, currRevision, scm, owner, null)).thenReturn(fileSystem);
 
             // when
             boolean result = buildStrategy.isAutomaticBuild(source, head, currRevision, lastBuiltRevision, lastSeenRevision, listener);

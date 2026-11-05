@@ -53,3 +53,21 @@ contain specific phrase in commit message
 This can also be achieved by excluding using a file directly in the repository containing the regions
 
 ![Multibranch build strategy extension](/images/exclusion_file.png "strategy configuration")
+
+## Using a separate Git credential
+
+The strategies read changes with Git (fetch and log), using the SCM source's credential. If that credential only works
+for the SCM provider's REST API (for example an Atlassian API scoped token with an email username), the Git operations
+fail and every change builds.
+
+To use a different credential for those Git operations only, open the multibranch project configuration, add the
+**Build strategy Git credential override** property, and set:
+
+- **Git hosts**: the hosts of the repository, separated by commas, for example `bitbucket.org`. The credential is only
+  sent to remotes on these hosts; otherwise the SCM source credential is used. List every host the remotes may use:
+  Bitbucket Cloud serves Git over SSH on `ssh.bitbucket.org`, so SSH checkouts need
+  `bitbucket.org, ssh.bitbucket.org`.
+- **Git credential (override)**: a username/password or SSH credential that Git can use against those hosts.
+
+Branch discovery keeps using the SCM source credential. The property is read from the multibranch project itself and
+is not inherited from enclosing folders.

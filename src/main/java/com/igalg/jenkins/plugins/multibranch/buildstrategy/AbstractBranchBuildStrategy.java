@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import com.cloudbees.hudson.plugins.folder.AbstractFolder;
 import com.google.common.annotations.VisibleForTesting;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitChangeSet;
@@ -73,11 +73,11 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
             // Determine if this is a change request (PR) or a regular branch
             final boolean isChangeRequest = currRevision instanceof ChangeRequestSCMRevision;
 
-            // resolve optional per-project credential override (for Git fetches during branch scan)
-            final String credentialsIdOverride = resolveCredentialsOverride(owner);
-
             // build SCM object
             final SCM scm = source.build(head, currRevision);
+
+            // resolve optional per-project credential override (for Git fetches during branch scan)
+            final String credentialsIdOverride = resolveCredentialsOverride(owner, scm);
 
             // build SCM file system
             final SCMFileSystem fileSystem = buildSCMFileSystem(source, head, currRevision, scm, owner, credentialsIdOverride);
@@ -131,19 +131,21 @@ public abstract class AbstractBranchBuildStrategy extends BranchBuildStrategy {
     abstract boolean shouldRunBuild(Set<String> patterns, Set<String> expressions, boolean isChangeRequest);
 
     /**
-     * Resolve the credential override for the multibranch project owning this SCM source.
-     * Walks parent folders so the property can be set on an enclosing folder too.
+     * Resolve the credential override configured on the multibranch project that owns the SCM source.
+     * Enclosing folders are not consulted, and the override is only used when every remote of {@code scm}
+     * is on one of the hosts the override was configured for.
      */
-    private static String resolveCredentialsOverride(SCMSourceOwner owner) {
-        Object cursor = owner;
-        while (cursor instanceof AbstractFolder) {
-            AbstractFolder<?> folder = (AbstractFolder<?>) cursor;
-            BuildStrategyCredentialsProperty prop = folder.getProperties().get(BuildStrategyCredentialsProperty.class);
-            if (prop != null && prop.getCredentialsId() != null && !prop.getCredentialsId().isEmpty()) {
-                return prop.getCredentialsId();
-            }
-            cursor = folder.getParent();
+    @CheckForNull
+    static String resolveCredentialsOverride(SCMSourceOwner owner, SCM scm) {
+        final BuildStrategyCredentialsProperty property = BuildStrategyCredentialsProperty.forOwner(owner);
+        if (property == null) {
+            return null;
         }
-        return null;
+        if (!property.appliesTo(scm)) {
+            LOGGER.warning(() -> String.format("Credential override on %s is restricted to host(s) %s, but an SCM "
+                    + "remote is elsewhere; using the SCM source credential", owner.getFullName(), property.getHosts()));
+            return null;
+        }
+        return property.getCredentialsId();
     }
 }

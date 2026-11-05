@@ -26,7 +26,6 @@ package com.igalg.jenkins.plugins.multibranch.buildstrategy;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,13 +34,20 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jenkinsci.plugins.gitclient.GitClient;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import hudson.model.Item;
 import hudson.plugins.git.GitChangeLogParser;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.UserRemoteConfig;
-import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.scm.SCM;
+import hudson.security.ACL;
 import jenkins.plugins.git.AbstractGitSCMSource;
 import jenkins.plugins.git.GitSCMFileSystem;
 import jenkins.scm.api.SCMFile;
@@ -61,64 +67,70 @@ final class BranchBuildStrategyHelper {
     }
 
     /**
-     * Backwards-compatible overload: no credential override.
-     * Retained for existing test mocks of this helper.
+     * Build the file system used to read pattern files and compute change sets.
+     *
+     * @param credentialsIdOverride credential to authenticate the Git fetch with instead of the SCM source's own
+     *                              credential, or {@code null} to keep the SCM source's behaviour unchanged. Callers
+     *                              must only pass an override that is allowed for every remote of {@code scm}.
      */
-    static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner) throws IOException, InterruptedException {
-        return buildSCMFileSystem(source, head, currRevision, scm, owner, null);
-    }
+    static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner, @CheckForNull String credentialsIdOverride) throws IOException, InterruptedException {
+        final SCMRevision revision = toGitRevision(head, currRevision);
 
-    static SCMFileSystem buildSCMFileSystem(SCMSource source, SCMHead head, SCMRevision currRevision, SCM scm, SCMSourceOwner owner, String credentialsIdOverride) throws IOException, InterruptedException {
-        SCMFileSystem.Builder builder = new GitSCMFileSystem.BuilderImpl();
-
-        // Normalize the revision — the builder's (Item, SCM, SCMRevision) overload expects SCMRevisionImpl.
-        SCMRevision effectiveRevision = currRevision;
-        if (currRevision != null && !(currRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            effectiveRevision = new AbstractGitSCMSource.SCMRevisionImpl(head, currRevision.toString().substring(0, HASH_LENGTH));
+        if (StringUtils.isNotBlank(credentialsIdOverride) && scm instanceof GitSCM gitSCM) {
+            final StandardUsernameCredentials credential = lookupGitCredential(credentialsIdOverride, owner, gitSCM);
+            if (credential != null) {
+                return OverrideCredentialsGitSCMFileSystem.build(gitSCM, head, (AbstractGitSCMSource.SCMRevisionImpl) revision, credential);
+            }
+            LOGGER.warning(() -> String.format("Credential override '%s' not found or not usable for Git in %s; "
+                    + "falling back to the SCM source credential", credentialsIdOverride, owner.getFullName()));
         }
 
-        // When an override is set we must use the (owner, scm, revision) path — the (source, head, revision)
-        // overload resolves credentials from the SCMSource directly, bypassing any override. Rewrite the
-        // GitSCM's UserRemoteConfigs so the builder picks up the override credential.
-        if (StringUtils.isNotBlank(credentialsIdOverride)) {
-            SCM overriddenScm = rewriteCredentials(scm, credentialsIdOverride);
-            return builder.build(owner, overriddenScm, effectiveRevision);
+        final SCMFileSystem.Builder builder = new GitSCMFileSystem.BuilderImpl();
+        if (revision != currRevision) {
+            return builder.build(source, head, revision);
         }
-
-        // Preserve legacy behavior when no override is set.
-        if (currRevision != null && !(currRevision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            return builder.build(source, head, effectiveRevision);
-        } else {
-            return builder.build(owner, scm, currRevision);
-        }
+        return builder.build(owner, scm, currRevision);
     }
 
     /**
-     * Return a copy of {@code scm} with every {@link UserRemoteConfig}'s credentialsId replaced by
-     * {@code credentialsIdOverride}. If {@code scm} is not a {@link GitSCM}, returns it unchanged.
+     * Look the credential up the same way the git plugin does when it fetches: in the context of the owner,
+     * restricted to the remote URI and to credential types Git can use.
      */
-    private static SCM rewriteCredentials(SCM scm, String credentialsIdOverride) {
-        if (!(scm instanceof GitSCM)) {
-            return scm;
+    @CheckForNull
+    static StandardUsernameCredentials lookupGitCredential(String credentialsId, Item owner, GitSCM scm) {
+        StandardUsernameCredentials credential = null;
+        for (UserRemoteConfig remote : scm.getUserRemoteConfigs()) {
+            StandardUsernameCredentials found = CredentialsProvider.findCredentialByIdInItem(
+                    credentialsId,
+                    StandardUsernameCredentials.class,
+                    owner,
+                    ACL.SYSTEM2,
+                    URIRequirementBuilder.fromUri(remote.getUrl()).build());
+            if (found == null || !GitClient.CREDENTIALS_MATCHER.matches(found)) {
+                return null;
+            }
+            credential = found;
         }
-        GitSCM gitSCM = (GitSCM) scm;
-        List<UserRemoteConfig> newConfigs = gitSCM.getUserRemoteConfigs().stream()
-                .map(rc -> new UserRemoteConfig(rc.getUrl(), rc.getName(), rc.getRefspec(), credentialsIdOverride))
-                .collect(Collectors.toList());
-        List<GitSCMExtension> extensions = new ArrayList<>();
-        for (GitSCMExtension ext : gitSCM.getExtensions()) {
-            extensions.add(ext);
+        if (credential != null) {
+            CredentialsProvider.track(owner, credential);
         }
-        return new GitSCM(newConfigs, gitSCM.getBranches(), gitSCM.getBrowser(), gitSCM.getGitTool(), extensions);
+        return credential;
+    }
+
+    /**
+     * Git file systems only understand {@link AbstractGitSCMSource.SCMRevisionImpl}. Other revisions (for example
+     * change request revisions) are converted using the leading commit hash of their string form.
+     */
+    static SCMRevision toGitRevision(SCMHead head, SCMRevision revision) {
+        if (revision == null || revision instanceof AbstractGitSCMSource.SCMRevisionImpl) {
+            return revision;
+        }
+        return new AbstractGitSCMSource.SCMRevisionImpl(head, revision.toString().substring(0, HASH_LENGTH));
     }
 
     static List<GitChangeSet> getGitChangeSetList(SCMFileSystem fileSystem, SCMHead head, SCMRevision revision) throws IOException, InterruptedException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        if (revision != null && !(revision instanceof AbstractGitSCMSource.SCMRevisionImpl)) {
-            fileSystem.changesSince(new AbstractGitSCMSource.SCMRevisionImpl(head, revision.toString().substring(0, HASH_LENGTH)), out);
-        } else {
-            fileSystem.changesSince(revision, out);
-        }
+        fileSystem.changesSince(toGitRevision(head, revision), out);
         GitChangeLogParser parser = new GitChangeLogParser(null, false);
         return parser.parse(new ByteArrayInputStream(out.toByteArray()));
     }
